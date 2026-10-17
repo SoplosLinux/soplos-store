@@ -1,0 +1,8 @@
+[Unit]
+Description=Soplos Store update check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/soplos-store --check-updates
+Nice=19
+IOSchedulingClass=idle

@@ -1,0 +1,40 @@
+[package]
+name = "soplos-store"
+version = "3.0.0-beta"
+description = "Soplos Store"
+authors = ["Sergi Perich <info@soploslinux.com>"]
+license = "GPL-3.0-or-later"
+edition = "2021"
+
+[lib]
+name = "soplos_store_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# HTTP client for the Flathub, ODRS and Snap Store APIs.
+ureq = "3"
+# Debian's AppStream metadata (DEP-11) is stored gzip-compressed YAML.
+flate2 = "1"
+serde_yaml = "0.9"
+# Debian ships its AppStream icons and screenshots as JPEG XL, which
+# WebKitGTK cannot display; they are decoded and re-encoded as PNG.
+jxl-oxide = "0.12"
+image = { version = "0.25", default-features = false, features = ["png"] }
+base64 = "0.22"
+# Update notifier: tray icon (StatusNotifierItem) and desktop notifications.
+ksni = { version = "0.3", features = ["blocking"] }
+notify-rust = "4"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

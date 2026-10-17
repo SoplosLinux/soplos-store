@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Soplos Store (updates)
+Comment=Shows a tray icon when updates are available
+Exec=/usr/bin/soplos-store --tray
+Icon=soplos-store
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Soplos Linux</vendor>
+  <vendor_url>https://soplos.org</vendor_url>
+
+  <action id="org.soplos.store.packages">
+    <description>Install, remove and update system packages</description>
+    <description xml:lang="es">Instalar, quitar y actualizar paquetes del sistema</description>
+    <description xml:lang="de">Systempakete installieren, entfernen und aktualisieren</description>
+    <description xml:lang="fr">Installer, supprimer et mettre à jour des paquets du système</description>
+    <description xml:lang="it">Installare, rimuovere e aggiornare pacchetti di sistema</description>
+    <description xml:lang="pt">Instalar, remover e atualizar pacotes do sistema</description>
+    <description xml:lang="ro">Instalarea, eliminarea și actualizarea pachetelor sistemului</description>
+    <description xml:lang="ru">Установка, удаление и обновление системных пакетов</description>
+    <message>Authentication is required to install, remove or update system packages</message>
+    <message xml:lang="es">Se necesita autenticación para instalar, quitar o actualizar paquetes del sistema</message>
+    <message xml:lang="de">Zum Installieren, Entfernen oder Aktualisieren von Systempaketen ist eine Authentifizierung erforderlich</message>
+    <message xml:lang="fr">Une authentification est nécessaire pour installer, supprimer ou mettre à jour des paquets du système</message>
+    <message xml:lang="it">È necessaria l'autenticazione per installare, rimuovere o aggiornare pacchetti di sistema</message>
+    <message xml:lang="pt">É necessária autenticação para instalar, remover ou atualizar pacotes do sistema</message>
+    <message xml:lang="ro">Este necesară autentificarea pentru a instala, elimina sau actualiza pachetele sistemului</message>
+    <message xml:lang="ru">Для установки, удаления или обновления системных пакетов требуется аутентификация</message>
+    <icon_name>soplos-store</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/soplos-store</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>

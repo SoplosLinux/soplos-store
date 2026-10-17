@@ -1,0 +1,3 @@
+// Soplos Store: refresh the package lists once a day through Debian's own
+// apt-daily timer, so new updates show up without asking for a password.
+APT::Periodic::Update-Package-Lists "1";

@@ -1,0 +1,2 @@
+Este será un nuevo programa que vendrá a competir con otros centros de software.
+Creado en Tauri y con algún servicio en systemd para notificar actualizaciones, etc.

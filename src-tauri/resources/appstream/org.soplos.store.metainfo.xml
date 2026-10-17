@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.soplos.store</id>
+  <pkgname>soplos-store</pkgname>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <project_group>org.soploslinux</project_group>
+
+  <name>Soplos Store</name>
+  <summary>Software store for Soplos Linux</summary>
+
+  <description>
+    <p>
+      Soplos Store finds, installs, updates and removes applications
+      from APT, Flatpak and Snap in one place. Featured apps, popular apps and
+      categories come from public databases (Debian AppStream, Flathub and
+      the Snap Store), with ratings from ODRS, and an app available from
+      several sources appears once with a choice of where to install it.
+    </p>
+    <p>
+      It also shows a tray icon when updates are available, and it opens
+      .deb, .flatpak, .flatpakref, .snap and .AppImage files.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">org.soplos.store.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>screenshot01.png</image>
+      <caption>Explore: a carousel of highlighted apps for each section</caption>
+    </screenshot>
+    <screenshot>
+      <image>screenshot02.png</image>
+      <caption>Categories, each with its own page</caption>
+    </screenshot>
+    <screenshot>
+      <image>screenshot03.png</image>
+      <caption>Installed apps from every source</caption>
+    </screenshot>
+    <screenshot>
+      <image>screenshot04.png</image>
+      <caption>Updates, one by one or all at once</caption>
+    </screenshot>
+    <screenshot>
+      <image>screenshot05.png</image>
+      <caption>Settings: sources, update checks and maintenance</caption>
+    </screenshot>
+    <screenshot>
+      <image>screenshot06.png</image>
+      <caption>App page: screenshots, ratings, details and links</caption>
+    </screenshot>
+  </screenshots>
+
+  <provides>
+    <binary>soplos-store</binary>
+  </provides>
+
+  <url type="homepage">https://soplos.org</url>
+
+  <developer id="org.soploslinux">
+    <name>Sergi Perich</name>
+  </developer>
+
+  <releases>
+    <release version="3.0.0-beta" date="2026-10-17">
+      <description>
+        <p>First release of Soplos Store, built with Tauri 2, a Rust backend and a Svelte frontend.</p>
+        <p>Firmware updates through fwupd, subcategories, a fuller app page and a systemd timer for the update checks.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+</component>
