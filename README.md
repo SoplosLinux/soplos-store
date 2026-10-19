@@ -71,4 +71,4 @@ npm run tauri dev      # development
 
 ## License
 
-GPL-3.0-or-later. See `LICENSE`.
+Copyright © 2026 Sergi Perich <info@soploslinux.com>. Published under the GPL-3.0-or-later license. See `LICENSE`.
