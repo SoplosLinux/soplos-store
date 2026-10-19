@@ -204,6 +204,14 @@
   </developer>
 
   <releases>
+    <release version="3.0.0-3-beta" date="2026-10-19">
+      <description>
+        <p>Direct update check on Updates tab mount with permanent top header and unified layout.</p>
+        <p>Full two-way synchronization between Store settings and systemd user timer (soplos-store-updates.timer).</p>
+        <p>Hourly update check option added across Settings and systemd timer integration.</p>
+        <p>Corrected JobAction types in TypeScript to support firmware LVFS testing channels.</p>
+      </description>
+    </release>
     <release version="3.0.0-2-beta" date="2026-10-19">
       <description>
         <p>Unified updates view with streamlined states, removing layout duplication and jumpiness.</p>

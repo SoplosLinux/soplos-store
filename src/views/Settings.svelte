@@ -206,6 +206,7 @@
     <div class="settings-row">
       <div class="settings-label">{$_("settings.frequency")}</div>
       <select class={selectClass} bind:value={$settings.frequency} disabled={!$settings.autoCheck}>
+        <option value="1h">{$_("settings.every1")}</option>
         <option value="6h">{$_("settings.every6")}</option>
         <option value="12h">{$_("settings.every12")}</option>
         <option value="daily">{$_("settings.daily")}</option>

@@ -70,16 +70,15 @@ fn refresh_apt_if_stale(interval: Duration) {
     }
 }
 
-/// Entry point for `--check-updates`. The timer fires every hour; the
-/// check itself only happens when the stored result is older than the
-/// frequency chosen in Settings.
+/// Entry point for `--check-updates`. Controlled by the systemd user timer
+/// soplos-store-updates.timer matching the interval configured in Settings.
 pub fn run() -> i32 {
     let config = settings::load();
     if !config.auto_check {
         eprintln!("soplos-store check: automatic checks are off in Settings, exiting");
         return 0;
     }
-    if age().is_some_and(|age| age < config.interval()) {
+    if age().is_some_and(|age| age < Duration::from_secs(300)) {
         return 0;
     }
     refresh_apt_if_stale(config.interval());

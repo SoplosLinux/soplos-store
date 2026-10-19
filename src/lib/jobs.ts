@@ -6,7 +6,18 @@ import { busy } from "./busy";
 import { settings } from "./settings";
 import type { SourceKind } from "./api";
 
-export type JobAction = "install" | "remove" | "update" | "install-file" | "refresh" | "check" | "autoremove" | "clean" | "unused";
+export type JobAction =
+  | "install"
+  | "remove"
+  | "update"
+  | "install-file"
+  | "refresh"
+  | "check"
+  | "autoremove"
+  | "clean"
+  | "unused"
+  | "testing-on"
+  | "testing-off";
 
 export interface JobRequest {
   action: JobAction;

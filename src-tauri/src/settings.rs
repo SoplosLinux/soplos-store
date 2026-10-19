@@ -25,6 +25,7 @@ impl Default for Settings {
 impl Settings {
     pub fn interval(&self) -> Duration {
         let hours = match self.frequency.as_str() {
+            "1h" => 1,
             "6h" => 6,
             "12h" => 12,
             "weekly" => 24 * 7,
@@ -48,6 +49,53 @@ pub fn load() -> Settings {
         .unwrap_or_default()
 }
 
+fn user_config_dir() -> Option<PathBuf> {
+    std::env::var_os("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
+}
+
+fn sync_systemd_timer(auto_check: bool, frequency: &str) {
+    if !auto_check {
+        let _ = std::process::Command::new("systemctl")
+            .args(["--user", "stop", "soplos-store-updates.timer"])
+            .status();
+        let _ = std::process::Command::new("systemctl")
+            .args(["--user", "disable", "soplos-store-updates.timer"])
+            .status();
+        return;
+    }
+
+    let interval_str = match frequency {
+        "1h" => "1h",
+        "6h" => "6h",
+        "12h" => "12h",
+        "weekly" => "7d",
+        _ => "1d",
+    };
+
+    if let Some(config_dir) = user_config_dir() {
+        let override_dir = config_dir
+            .join("systemd")
+            .join("user")
+            .join("soplos-store-updates.timer.d");
+        if std::fs::create_dir_all(&override_dir).is_ok() {
+            let content = format!(
+                "[Timer]\nOnUnitActiveSec=\nOnUnitActiveSec={}\n",
+                interval_str
+            );
+            let _ = std::fs::write(override_dir.join("override.conf"), content);
+        }
+    }
+
+    let _ = std::process::Command::new("systemctl")
+        .args(["--user", "daemon-reload"])
+        .status();
+    let _ = std::process::Command::new("systemctl")
+        .args(["--user", "enable", "--now", "soplos-store-updates.timer"])
+        .status();
+}
+
 #[tauri::command]
 pub fn save_settings(settings: serde_json::Value) -> Result<(), String> {
     let path = path().ok_or("no home directory")?;
@@ -55,5 +103,11 @@ pub fn save_settings(settings: serde_json::Value) -> Result<(), String> {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
     let data = serde_json::to_vec_pretty(&settings).map_err(|e| e.to_string())?;
-    std::fs::write(path, data).map_err(|e| e.to_string())
+    std::fs::write(path, data).map_err(|e| e.to_string())?;
+
+    let auto_check = settings.get("autoCheck").and_then(|v| v.as_bool()).unwrap_or(true);
+    let frequency = settings.get("frequency").and_then(|v| v.as_str()).unwrap_or("daily");
+    sync_systemd_timer(auto_check, frequency);
+
+    Ok(())
 }

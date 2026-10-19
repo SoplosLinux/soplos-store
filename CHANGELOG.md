@@ -2,6 +2,20 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-3-beta] - 2026-10-19
+
+### Added
+
+- Real-time synchronization between Store Settings and the systemd user timer (`soplos-store-updates.timer`), creating dynamic drop-in overrides (`override.conf`) and enabling/disabling the timer according to user choices.
+- Added hourly ("1h") update check frequency option across settings UI, translations, and backend timer integration.
+- Added `"testing-on"` and `"testing-off"` actions to `JobAction` type in TypeScript to properly type LVFS testing channel toggles.
+
+### Changed
+
+- Updates tab triggers fresh update check unconditionally on mount, eliminating timer-based age restrictions when the user deliberately opens the updates view.
+- Unified Updates tab layout: stable permanent top header containing status and action buttons, completely eliminating duplicated buttons and centered layout shifts.
+- Fixed `checker.rs` to rely on the systemd timer interval rather than discarding checks with a redundant local age filter.
+
 ## [3.0.0-2-beta] - 2026-10-19
 
 ### Added

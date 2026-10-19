@@ -284,6 +284,7 @@
     "auto": "Comprobar automáticamente",
     "autoDesc": "Comprueba en segundo plano desde el inicio de sesión y muestra un icono en la bandeja cuando hay actualizaciones.",
     "frequency": "Frecuencia",
+    "every1": "Cada 1 hora",
     "every6": "Cada 6 horas",
     "every12": "Cada 12 horas",
     "daily": "Diaria",

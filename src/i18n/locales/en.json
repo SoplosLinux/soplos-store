@@ -284,6 +284,7 @@
     "auto": "Check automatically",
     "autoDesc": "Checks in the background from login and shows a tray icon when there are updates.",
     "frequency": "Frequency",
+    "every1": "Every hour",
     "every6": "Every 6 hours",
     "every12": "Every 12 hours",
     "daily": "Daily",
