@@ -9,6 +9,39 @@ use std::process::Command;
 
 use crate::validate;
 
+/// Entry point for `--privileged-refresh`, run as root through pkexec with
+/// allow_active=yes. Exclusively runs `apt-get update` with no package arguments.
+pub fn run_refresh(args: &[String]) -> i32 {
+    let mut lang = None;
+    let mut locale = None;
+    let mut args = args;
+    while let Some(first) = args.first() {
+        if let Some(value) = first.strip_prefix("--lang=") {
+            lang = Some(value).filter(|v| v.len() == 2 && v.chars().all(|c| c.is_ascii_lowercase()));
+        } else if let Some(value) = first.strip_prefix("--locale=") {
+            locale = Some(value).filter(|v| !v.is_empty() && v.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '@' | '-')));
+        } else {
+            break;
+        }
+        args = &args[1..];
+    }
+    let mut apt = Command::new("apt-get");
+    apt.arg("-q=0").arg("update").env("DEBIAN_FRONTEND", "noninteractive");
+    if let Some(locale) = locale {
+        apt.env("LANG", locale);
+    }
+    if let Some(lang) = lang {
+        apt.env("LANGUAGE", format!("{lang}:en"));
+    }
+    match apt.status() {
+        Ok(status) => status.code().unwrap_or(1),
+        Err(e) => {
+            eprintln!("soplos-store: could not run apt-get update: {e}");
+            1
+        }
+    }
+}
+
 pub fn run(args: &[String]) -> i32 {
     // Optional leading options with the language of the app, so apt writes
     // in it (see jobs.rs): --lang=xx and --locale=xx_XX.UTF-8.

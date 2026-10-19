@@ -54,6 +54,22 @@ pub fn check_and_store() -> usize {
     found
 }
 
+fn refresh_apt_if_stale(interval: Duration) {
+    let (age_secs, _) = apt::lists_status();
+    let is_stale = match age_secs {
+        Some(secs) => Duration::from_secs(secs) >= interval,
+        None => true,
+    };
+    if is_stale {
+        if let Ok(exe) = std::env::current_exe() {
+            let _ = std::process::Command::new("pkexec")
+                .arg(exe)
+                .arg("--privileged-refresh")
+                .status();
+        }
+    }
+}
+
 /// Entry point for `--check-updates`. The timer fires every hour; the
 /// check itself only happens when the stored result is older than the
 /// frequency chosen in Settings.
@@ -66,6 +82,7 @@ pub fn run() -> i32 {
     if age().is_some_and(|age| age < config.interval()) {
         return 0;
     }
+    refresh_apt_if_stale(config.interval());
     let found = check_and_store();
     eprintln!("soplos-store check: {found} updates found");
     0

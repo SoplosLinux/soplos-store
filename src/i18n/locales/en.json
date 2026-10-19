@@ -24,7 +24,8 @@
     "clear": "Clear",
     "installing": "Installing...",
     "removing": "Removing...",
-    "updating": "Updating..."
+    "updating": "Updating...",
+    "select": "Select"
   },
   "jobs": {
     "installing": "Installing {name}",
@@ -183,7 +184,12 @@
   "installed": {
     "count": "{count} apps installed",
     "search": "Search installed apps...",
-    "empty": "Nothing installed from this source."
+    "empty": "Nothing installed from this source.",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "uninstallSelected": "Uninstall ({count})",
+    "multiSelect": "Select",
+    "cancelSelect": "Done"
   },
   "updates": {
     "count": "{count} updates available",
@@ -193,11 +199,15 @@
     "lastCheck": "Last checked: {time}",
     "refreshing": "Checking for updates",
     "listsRefreshed": "Package lists refreshed {when}",
-    "listsNever": "The package lists have not been refreshed yet"
+    "listsNever": "The package lists have not been refreshed yet",
+    "noneSub": "All system packages and installed applications are up to date.",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "selectedCount": "{selected} of {total} selected"
   },
   "about": {
     "version": "Version {version}",
-    "tagline": "Find, install and update apps from APT, Flatpak and Snap.",
+    "tagline": "Find, install and update apps from APT, Flatpak, Snap and AppImages.",
     "copyright": "Copyright © 2026 Sergi Perich",
     "license": "Licensed under the GPL-3.0-or-later",
     "close": "Close"

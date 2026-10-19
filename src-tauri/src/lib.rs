@@ -1,6 +1,8 @@
+mod appimage;
 mod apt;
 mod cache;
 mod catalog;
+mod desktop;
 mod checker;
 mod flathub;
 mod flatpak;
@@ -24,6 +26,12 @@ mod validate;
 /// pkexec. Returns the exit code.
 pub fn run_privileged(args: &[String]) -> i32 {
     privileged::run(args)
+}
+
+/// Entry point for `--privileged-refresh`, run as root through pkexec with
+/// allow_active=yes. Exclusively runs `apt-get update`.
+pub fn run_privileged_refresh(args: &[String]) -> i32 {
+    privileged::run_refresh(args)
 }
 
 /// Entry point for `--tray`, the update notifier started with the session.

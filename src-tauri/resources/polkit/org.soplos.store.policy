@@ -6,6 +6,27 @@
   <vendor>Soplos Linux</vendor>
   <vendor_url>https://soplos.org</vendor_url>
 
+  <action id="org.soplos.store.refresh">
+    <description>Refresh APT package lists</description>
+    <description xml:lang="es">Actualizar listas de paquetes APT</description>
+    <description xml:lang="de">Paketlisten aktualisieren</description>
+    <description xml:lang="fr">Actualiser les listes de paquets</description>
+    <description xml:lang="it">Aggiorna elenchi dei pacchetti</description>
+    <description xml:lang="pt">Atualizar listas de pacotes</description>
+    <description xml:lang="ro">Actualizarea listelor de pachete</description>
+    <description xml:lang="ru">Обновление списков пакетов</description>
+    <message>Authentication is required to refresh package lists</message>
+    <message xml:lang="es">Se necesita autenticación para actualizar las listas de paquetes</message>
+    <icon_name>soplos-store</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/soplos-store</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">--privileged-refresh</annotate>
+  </action>
+
   <action id="org.soplos.store.packages">
     <description>Install, remove and update system packages</description>
     <description xml:lang="es">Instalar, quitar y actualizar paquetes del sistema</description>
@@ -30,6 +51,7 @@
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/soplos-store</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">--privileged</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 </policyconfig>

@@ -24,7 +24,8 @@
     "clear": "Effacer",
     "installing": "Installation...",
     "removing": "Désinstallation...",
-    "updating": "Mise à jour..."
+    "updating": "Mise à jour...",
+    "select": "Sélectionner"
   },
   "jobs": {
     "installing": "Installation de {name}",
@@ -183,7 +184,12 @@
   "installed": {
     "count": "{count} applications installées",
     "search": "Rechercher dans les applications installées...",
-    "empty": "Rien n'est installé depuis cette source."
+    "empty": "Rien n'est installé depuis cette source.",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "uninstallSelected": "Désinstaller ({count})",
+    "multiSelect": "Sélectionner",
+    "cancelSelect": "Terminé"
   },
   "updates": {
     "count": "{count} mises à jour disponibles",
@@ -193,11 +199,15 @@
     "lastCheck": "Dernière vérification : {time}",
     "refreshing": "Recherche de mises à jour",
     "listsRefreshed": "Listes de paquets mises à jour {when}",
-    "listsNever": "Les listes de paquets n'ont pas encore été mises à jour"
+    "listsNever": "Les listes de paquets n'ont pas encore été mises à jour",
+    "noneSub": "Tous les paquets système et applications installées sont à jour.",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "selectedCount": "{selected} sur {total} sélectionnés"
   },
   "about": {
     "version": "Version {version}",
-    "tagline": "Trouvez, installez et mettez à jour des applications depuis APT, Flatpak et Snap.",
+    "tagline": "Trouvez, installez et mettez à jour des applications depuis APT, Flatpak, Snap et AppImages.",
     "copyright": "Copyright © 2026 Sergi Perich",
     "license": "Sous licence GPL-3.0-or-later",
     "close": "Fermer"

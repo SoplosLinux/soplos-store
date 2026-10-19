@@ -10,7 +10,7 @@ use serde_json::Value;
 use crate::apt::{self, AptApp};
 use crate::flathub::{self, Hit};
 use crate::models::{AppCard, AppDetail, AptStatus, InstalledApp, Section, SourceOption, SourcesStatus, UpdateItem};
-use crate::{checker, flatpak, fwupd, odrs, snap, system};
+use crate::{appimage, checker, desktop, flatpak, fwupd, odrs, snap, system};
 
 /// Flathub category IDs and the matching AppStream main category.
 pub const CATEGORIES: [(&str, &str); 10] = [
@@ -486,8 +486,59 @@ fn detail(id: &str) -> Option<AppDetail> {
 
 fn installed_apps() -> Vec<InstalledApp> {
     let mut apps = Vec::new();
-    for (package, (version, size_kib)) in apt::installed_packages().iter() {
+    let installed = apt::installed_packages();
+    let desktop_fallback = desktop::desktop_apps();
+    let mut seen_packages: HashSet<String> = HashSet::new();
+
+    // 1. Suite unification: LibreOffice.
+    // If the metapackage or libreoffice-common is installed, unify the entire
+    // suite into a single "LibreOffice" entry instead of 6 loose sub-apps.
+    let has_libreoffice = installed.contains_key("libreoffice") || installed.contains_key("libreoffice-common");
+    if has_libreoffice {
+        let lo_version = installed
+            .get("libreoffice")
+            .or_else(|| installed.get("libreoffice-common"))
+            .or_else(|| installed.get("libreoffice-writer"))
+            .map(|(v, _)| v.clone())
+            .unwrap_or_default();
+        let lo_size: u64 = installed
+            .iter()
+            .filter(|(pkg, _)| pkg.starts_with("libreoffice-") || *pkg == "libreoffice")
+            .map(|(_, (_, size_kib))| size_kib * 1024)
+            .sum();
+
+        let icon = desktop_fallback
+            .get("libreoffice-common")
+            .and_then(|e| e.icon.clone())
+            .or_else(|| desktop::resolve_icon("libreoffice-startcenter"))
+            .or_else(|| desktop::resolve_icon("libreoffice"));
+
+        apps.push(InstalledApp {
+            id: "libreoffice".into(),
+            name: "LibreOffice".into(),
+            summary: "Office productivity suite".into(),
+            icon,
+            source: "apt".into(),
+            package: "libreoffice".into(),
+            version: lo_version,
+            size: system::format_size(lo_size),
+        });
+
+        // Mark all libreoffice packages so sub-apps never appear separately.
+        for (pkg, _) in installed.iter() {
+            if pkg.starts_with("libreoffice-") || pkg == "libreoffice" {
+                seen_packages.insert(pkg.clone());
+            }
+        }
+    }
+
+    // 2. First pass: packages with DEP-11 AppStream metadata (rich data).
+    for (package, (version, size_kib)) in installed.iter() {
+        if seen_packages.contains(package) {
+            continue;
+        }
         if let Some(app) = apt::app_for_package(package) {
+            seen_packages.insert(package.clone());
             apps.push(InstalledApp {
                 id: app.id.clone(),
                 name: app.name.clone(),
@@ -500,6 +551,30 @@ fn installed_apps() -> Vec<InstalledApp> {
             });
         }
     }
+
+    // 3. Second pass: packages that own a .desktop file but have no DEP-11
+    // entry. This catches apps like KMail, GIMP or custom apps on systems
+    // whose AppStream metadata is incomplete or absent.
+    for (package, entry) in &desktop_fallback {
+        if seen_packages.contains(package) {
+            continue;
+        }
+        if let Some((version, size_kib)) = installed.get(package) {
+            seen_packages.insert(package.clone());
+            apps.push(InstalledApp {
+                id: package.clone(),
+                name: entry.name.clone(),
+                summary: entry.comment.clone(),
+                icon: entry.icon.clone(),
+                source: "apt".into(),
+                package: package.clone(),
+                version: version.clone(),
+                size: system::format_size(size_kib * 1024),
+            });
+        }
+    }
+
+    // 4. Flatpak apps.
     for app in flatpak::installed() {
         apps.push(InstalledApp {
             icon: flatpak::icon(&app.id, &app.scope),
@@ -512,6 +587,8 @@ fn installed_apps() -> Vec<InstalledApp> {
             size: app.size,
         });
     }
+
+    // 5. Snap apps.
     for app in snap::installed() {
         apps.push(InstalledApp {
             id: format!("snap:{}", app.name),
@@ -524,6 +601,21 @@ fn installed_apps() -> Vec<InstalledApp> {
             size: String::new(),
         });
     }
+
+    // 6. AppImage apps from ~/AppImages.
+    for app in appimage::installed() {
+        apps.push(InstalledApp {
+            id: format!("appimage:{}", app.file),
+            name: app.name,
+            summary: app.summary,
+            icon: app.icon,
+            source: "appimage".into(),
+            package: app.file,
+            version: app.version,
+            size: app.size,
+        });
+    }
+
     apps.sort_by_key(|a| a.name.to_lowercase());
     apps
 }

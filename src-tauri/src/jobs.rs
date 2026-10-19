@@ -123,6 +123,18 @@ fn privileged(action: &str, args: &[String]) -> Result<Vec<String>, String> {
     Ok(command)
 }
 
+fn privileged_refresh() -> Result<Vec<String>, String> {
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let mut command = vec!["pkexec".to_string(), exe.to_string_lossy().into_owned(), "--privileged-refresh".into()];
+    command.push(format!("--lang={}", i18n::current()));
+    if let Ok(locale) = std::env::var("LANG") {
+        if locale.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '@' | '-')) && !locale.is_empty() {
+            command.push(format!("--locale={locale}"));
+        }
+    }
+    Ok(command)
+}
+
 fn strings(items: &[&str]) -> Vec<String> {
     items.iter().map(|s| s.to_string()).collect()
 }
@@ -165,7 +177,7 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
             vec![privileged("apt-upgrade", ids)?]
         }
         ("apt", "install-file") if validate::package_file(&file, &["deb"]) => vec![privileged("apt-install-file", &[file])?],
-        ("apt", "refresh") => vec![privileged("apt-update", &[])?],
+        ("apt", "refresh") => vec![privileged_refresh()?],
         ("apt", "autoremove") => vec![privileged("apt-autoremove", &[])?],
         ("apt", "clean") => vec![privileged("apt-clean", &[])?],
 
@@ -243,6 +255,17 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
         // A local .snap file is not signed by the store, hence --dangerous.
         ("snap", "install-file") if validate::package_file(&file, &["snap"]) => vec![strings(&["snap", "install", "--dangerous", &file])],
 
+        ("appimage", "remove") => {
+            for id in ids {
+                let _ = crate::appimage::remove(id);
+            }
+            vec![vec!["#echo".to_string(), "OK".to_string()]]
+        }
+        ("appimage", "install-file") => {
+            crate::appimage::install_file(std::path::Path::new(&file))?;
+            vec![vec!["#echo".to_string(), "OK".to_string()]]
+        }
+
         // Firmware goes through fwupd, which asks for authorization itself.
         ("firmware", "update") => {
             need_ids(validate::fwupd_device_id)?;
@@ -259,7 +282,7 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
         // Updates page reads all three sources again when the job ends.
         ("all", "check") => {
             let heading = |key: &str| vec!["#echo".to_string(), i18n::t(key)];
-            let mut steps: Vec<Vec<String>> = vec![heading("checklog.apt"), privileged("apt-update", &[])?, strings(&["#report", "apt"])];
+            let mut steps: Vec<Vec<String>> = vec![heading("checklog.apt"), privileged_refresh()?, strings(&["#report", "apt"])];
             if snap::available() {
                 steps.push(heading("checklog.snap"));
                 steps.push(strings(&["#report", "snap"]));

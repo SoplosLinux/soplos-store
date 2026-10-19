@@ -18,6 +18,9 @@ fn running_in_vm() -> bool {
 fn main() {
     // Started by pkexec for an APT operation: do it and exit, no window.
     let args: Vec<String> = std::env::args().collect();
+    if args.get(1).map(String::as_str) == Some("--privileged-refresh") {
+        std::process::exit(soplos_store_lib::run_privileged_refresh(&args[2..]));
+    }
     if args.get(1).map(String::as_str) == Some("--privileged") {
         std::process::exit(soplos_store_lib::run_privileged(&args[2..]));
     }

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { track } from "./busy";
 
-export type SourceKind = "apt" | "flatpak" | "snap" | "firmware";
+export type SourceKind = "apt" | "flatpak" | "snap" | "firmware" | "appimage";
 
 export interface AppCard {
   id: string;

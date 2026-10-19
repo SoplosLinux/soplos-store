@@ -2,7 +2,7 @@
 Description=Soplos Store update check, every hour (it only checks when the frequency chosen in Settings has passed)
 
 [Timer]
-OnStartupSec=3min
+OnStartupSec=1min
 OnUnitActiveSec=1h
 Persistent=true
 

@@ -59,7 +59,7 @@ impl ksni::Tray for UpdatesTray {
         "Soplos Store".into()
     }
 
-    // The icon theme's own update icon, drawn to fit the panel.
+    // Standard freedesktop update status icon for tray
     fn icon_name(&self) -> String {
         "software-update-available".into()
     }
@@ -114,19 +114,34 @@ fn current_count(interval: Duration, force: bool) -> usize {
 
 fn notify(texts: Texts, count: usize) {
     std::thread::spawn(move || {
-        let shown = notify_rust::Notification::new()
+        let mut notif = notify_rust::Notification::new();
+        notif
             .appname("Soplos Store")
             .summary("Soplos Store")
             .body(&available(count))
             .icon("soplos-store")
-            .action("default", &texts.open)
-            .show();
-        if let Ok(handle) = shown {
-            handle.wait_for_action(|action| {
-                if action == "default" {
-                    open_updates();
-                }
-            });
+            .hint(notify_rust::Hint::Category("transfer.complete".into()))
+            .hint(notify_rust::Hint::DesktopEntry("soplos-store".into()))
+            .action("default", &texts.open);
+
+        match notif.show() {
+            Ok(handle) => {
+                handle.wait_for_action(|action| {
+                    if action == "default" {
+                        open_updates();
+                    }
+                });
+            }
+            Err(e) => {
+                eprintln!("soplos-store tray: interactive notification failed, trying fallback: {e}");
+                let _ = notify_rust::Notification::new()
+                    .appname("Soplos Store")
+                    .summary("Soplos Store")
+                    .body(&available(count))
+                    .icon("soplos-store")
+                    .hint(notify_rust::Hint::DesktopEntry("soplos-store".into()))
+                    .show();
+            }
         }
     });
 }
@@ -156,7 +171,8 @@ pub fn run() -> i32 {
     let texts = Texts::load();
     let (sender, receiver) = mpsc::channel();
     let mut tray: Option<Handle<UpdatesTray>> = None;
-    let mut notified = 0;
+    let mut notified_count = 0;
+    let mut last_notified_at: Option<std::time::Instant> = None;
     let mut wait = FIRST_READ_DELAY;
 
     loop {
@@ -177,7 +193,8 @@ pub fn run() -> i32 {
             if let Some(handle) = tray.take() {
                 handle.shutdown().wait();
             }
-            notified = 0;
+            notified_count = 0;
+            last_notified_at = None;
         } else {
             match &tray {
                 Some(handle) => {
@@ -185,16 +202,18 @@ pub fn run() -> i32 {
                 }
                 None => match (UpdatesTray { count, texts: texts.clone(), sender: sender.clone() }).spawn() {
                     Ok(handle) => tray = Some(handle),
-                    // No StatusNotifierItem host (e.g. GNOME without the
-                    // AppIndicator extension): the notification still shows.
+                    // No StatusNotifierItem host: the notification still shows.
                     Err(error) => eprintln!("soplos-store tray: could not show the tray icon: {error}"),
                 },
             }
-            // A notification only when there are more updates than last time.
-            if config.notify && count > notified {
+            // Notify if new updates arrived OR if the notification interval has elapsed
+            let interval_elapsed = last_notified_at.map(|t| t.elapsed() >= config.interval()).unwrap_or(true);
+            let has_more = count > notified_count;
+            if config.notify && (has_more || interval_elapsed) {
                 notify(texts.clone(), count);
+                last_notified_at = Some(std::time::Instant::now());
+                notified_count = count;
             }
-            notified = count;
         }
         wait = READ_EVERY;
     }

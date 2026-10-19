@@ -2,6 +2,40 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-2-beta] - 2026-10-19
+
+### Added
+
+- Manual page documentation (`docs/soplos-store.1`) installed to `/usr/share/man/man1/` covering application usage, options, supported file formats, and system files.
+- Full 8-language internationalization across desktop application launchers (`soplos-store.desktop.hbs`), tray autostart entries (`soplos-store-tray.desktop`), and AppStream metadata (`org.soplos.store.metainfo.xml`).
+- Complete 9-screenshot application showcase covering Explore, App Detail, Categories, Category Detail, Installed, Batch Selection, Updates, Up-to-Date view, and Settings.
+
+### Changed
+
+- Redesigned Updates view with clean per-state layouts: single unified centered view during refresh and up-to-date states, and toolbar action header with package list when updates are available.
+- Streamlined batch uninstall in Installed tab: activation via dedicated "Select" button, full-card tap selection, and removal of hazardous "Select all" control.
+- Stabilized toolbar in Installed tab with non-wrapping controls to eliminate visual jumping when selecting applications.
+
+## [3.0.0-1-beta] - 2026-10-18
+
+### Added
+
+- Multi-selection checkboxes and batch uninstallation in "Installed" tab (`Installed.svelte`), allowing bulk removal across mixed sources (APT, Flatpak, Snap, AppImages).
+- Full AppImage integration (`appimage.rs`): scans installed AppImages from `~/AppImages` with their desktop launchers, and provides direct "Install" support when opening `.AppImage` package files, automatically copying to `~/AppImages`, granting executable permissions, and generating desktop launchers.
+- Suite unification for LibreOffice in "Installed" tab: consolidates individual packages (`libreoffice-base`, `libreoffice-calc`, `libreoffice-math`, `libreoffice-writer`, etc.) under a single, unified "LibreOffice" suite entry.
+- Robust `.desktop` file fallback discovery for installed applications (`desktop.rs`), ensuring GUI apps (e.g. LibreOffice, KMail, GIMP) are always detected in "Installed" even when DEP-11 AppStream metadata is incomplete or absent.
+
+### Changed
+
+- Separated APT repository refresh into a dedicated Polkit action with `<allow_active>yes</allow_active>` via `--privileged-refresh`, allowing update checks without password prompts.
+- Reduced the update check timer startup delay from 3 minutes to 1 minute (`OnStartupSec=1min`).
+- Updated tray icon to use the standard `software-update-available` status icon while keeping the official `soplos-store` brand icon for desktop notifications.
+- Fixed notification repetition logic in `tray.rs` so pending updates notify reliably on startup and at configured intervals.
+- Added desktop entry hints and graceful fallback for notifications across all supported desktops.
+- Auto-refresh stale APT lists on Updates tab mount without password dialogs.
+- Unified Updates tab layout with a permanent, stable header, integrated "Select all" control, and consistent states for loading, up-to-date, and available updates without jarring layout shifts.
+- Dynamically display only available/installed package sources in the Updates tab (hiding Snap or Flatpak if not present on the system).
+
 ## [3.0.0-beta] - 2026-10-17
 
 ### Added

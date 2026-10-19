@@ -1,7 +1,23 @@
 [Desktop Entry]
 Type=Application
 Name=Soplos Store (updates)
+Name[en]=Soplos Store (updates)
+Name[es]=Soplos Store (actualizaciones)
+Name[fr]=Soplos Store (mises à jour)
+Name[de]=Soplos Store (Aktualisierungen)
+Name[pt]=Soplos Store (atualizações)
+Name[it]=Soplos Store (aggiornamenti)
+Name[ro]=Soplos Store (actualizări)
+Name[ru]=Soplos Store (обновления)
 Comment=Shows a tray icon when updates are available
+Comment[en]=Shows a tray icon when updates are available
+Comment[es]=Muestra un icono en la bandeja cuando hay actualizaciones disponibles
+Comment[fr]=Affiche une icône dans la zone de notification lorsque des mises à jour sont disponibles
+Comment[de]=Zeigt ein Benachrichtigungssymbol an, wenn Aktualisierungen verfügbar sind
+Comment[pt]=Mostra um ícone na área de notificação quando há atualizações disponíveis
+Comment[it]=Mostra un'icona nella barra di sistema quando sono disponibili aggiornamenti
+Comment[ro]=Afișează o pictogramă în bara de sistem când sunt disponibile actualizări
+Comment[ru]=Показывает значок в трее при наличии доступных обновлений
 Exec=/usr/bin/soplos-store --tray
 Icon=soplos-store
 Terminal=false

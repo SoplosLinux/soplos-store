@@ -10,6 +10,7 @@ export const availableSources = readable<SourceKind[]>(["apt"], (set) => {
       const list: SourceKind[] = ["apt"];
       if (status?.flatpak) list.push("flatpak");
       if (status?.snap) list.push("snap");
+      if (status?.appimageManager) list.push("appimage");
       set(list);
     })
     .catch(() => set(["apt"]));

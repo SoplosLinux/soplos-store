@@ -24,7 +24,8 @@
     "clear": "Очистить",
     "installing": "Установка...",
     "removing": "Удаление...",
-    "updating": "Обновление..."
+    "updating": "Обновление...",
+    "select": "Выбрать"
   },
   "jobs": {
     "installing": "Установка: {name}",
@@ -183,7 +184,12 @@
   "installed": {
     "count": "Установлено приложений: {count}",
     "search": "Поиск среди установленных приложений...",
-    "empty": "Из этого источника ничего не установлено."
+    "empty": "Из этого источника ничего не установлено.",
+    "selectAll": "Выбрать все",
+    "deselectAll": "Снять выбор",
+    "uninstallSelected": "Удалить ({count})",
+    "multiSelect": "Выбрать",
+    "cancelSelect": "Готово"
   },
   "updates": {
     "count": "Доступно обновлений: {count}",
@@ -193,11 +199,15 @@
     "lastCheck": "Последняя проверка: {time}",
     "refreshing": "Поиск обновлений",
     "listsRefreshed": "Списки пакетов обновлены {when}",
-    "listsNever": "Списки пакетов ещё ни разу не обновлялись"
+    "listsNever": "Списки пакетов ещё ни разу не обновлялись",
+    "noneSub": "Все системные пакеты и установленные приложения обновлены до последней версии.",
+    "selectAll": "Выбрать все",
+    "deselectAll": "Снять выбор со всех",
+    "selectedCount": "{selected} из {total} выбрано"
   },
   "about": {
     "version": "Версия {version}",
-    "tagline": "Поиск, установка и обновление приложений из APT, Flatpak и Snap.",
+    "tagline": "Поиск, установка и обновление приложений из APT, Flatpak, Snap и AppImages.",
     "copyright": "Copyright © 2026 Sergi Perich",
     "license": "Распространяется по лицензии GPL-3.0-or-later",
     "close": "Закрыть"

@@ -24,7 +24,8 @@
     "clear": "Șterge",
     "installing": "Se instalează...",
     "removing": "Se dezinstalează...",
-    "updating": "Se actualizează..."
+    "updating": "Se actualizează...",
+    "select": "Selectează"
   },
   "jobs": {
     "installing": "Se instalează {name}",
@@ -183,7 +184,12 @@
   "installed": {
     "count": "{count} aplicații instalate",
     "search": "Caută în aplicațiile instalate...",
-    "empty": "Nimic nu este instalat din această sursă."
+    "empty": "Nimic nu este instalat din această sursă.",
+    "selectAll": "Selectează tot",
+    "deselectAll": "Deselectează tot",
+    "uninstallSelected": "Dezinstalează ({count})",
+    "multiSelect": "Selectează",
+    "cancelSelect": "Gata"
   },
   "updates": {
     "count": "{count} actualizări disponibile",
@@ -193,11 +199,15 @@
     "lastCheck": "Ultima verificare: {time}",
     "refreshing": "Se caută actualizări",
     "listsRefreshed": "Listele de pachete au fost actualizate {when}",
-    "listsNever": "Listele de pachete nu au fost încă actualizate"
+    "listsNever": "Listele de pachete nu au fost încă actualizate",
+    "noneSub": "Toate pachetele de sistem și aplicațiile instalate sunt actualizate la zi.",
+    "selectAll": "Selectează tot",
+    "deselectAll": "Deselectează tot",
+    "selectedCount": "{selected} din {total} selectate"
   },
   "about": {
     "version": "Versiunea {version}",
-    "tagline": "Găsește, instalează și actualizează aplicații din APT, Flatpak și Snap.",
+    "tagline": "Găsește, instalează și actualizează aplicații din APT, Flatpak, Snap și AppImages.",
     "copyright": "Copyright © 2026 Sergi Perich",
     "license": "Licențiat sub GPL-3.0-or-later",
     "close": "Închide"

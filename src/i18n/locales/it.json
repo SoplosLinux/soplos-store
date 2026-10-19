@@ -24,7 +24,8 @@
     "clear": "Cancella",
     "installing": "Installazione...",
     "removing": "Disinstallazione...",
-    "updating": "Aggiornamento..."
+    "updating": "Aggiornamento...",
+    "select": "Seleziona"
   },
   "jobs": {
     "installing": "Installazione di {name}",
@@ -183,7 +184,12 @@
   "installed": {
     "count": "{count} applicazioni installate",
     "search": "Cerca tra le applicazioni installate...",
-    "empty": "Nulla è installato da questa origine."
+    "empty": "Nulla è installato da questa origine.",
+    "selectAll": "Seleziona tutto",
+    "deselectAll": "Deseleziona tutto",
+    "uninstallSelected": "Disinstalla ({count})",
+    "multiSelect": "Seleziona",
+    "cancelSelect": "Fatto"
   },
   "updates": {
     "count": "{count} aggiornamenti disponibili",
@@ -193,11 +199,15 @@
     "lastCheck": "Ultimo controllo: {time}",
     "refreshing": "Ricerca di aggiornamenti",
     "listsRefreshed": "Elenchi dei pacchetti aggiornati {when}",
-    "listsNever": "Gli elenchi dei pacchetti non sono ancora stati aggiornati"
+    "listsNever": "Gli elenchi dei pacchetti non sono ancora stati aggiornati",
+    "noneSub": "Tutti i pacchetti di sistema e le applicazioni installate sono aggiornati.",
+    "selectAll": "Seleziona tutti",
+    "deselectAll": "Deseleziona tutti",
+    "selectedCount": "{selected} su {total} selezionati"
   },
   "about": {
     "version": "Versione {version}",
-    "tagline": "Trova, installa e aggiorna applicazioni da APT, Flatpak e Snap.",
+    "tagline": "Trova, installa e aggiorna applicazioni da APT, Flatpak, Snap e AppImages.",
     "copyright": "Copyright © 2026 Sergi Perich",
     "license": "Distribuito con licenza GPL-3.0-or-later",
     "close": "Chiudi"

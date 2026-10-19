@@ -1,0 +1,88 @@
+.TH "SOPLOS-STORE" "1" "2026-10-19" "Soplos Linux" "User Commands"
+.SH NAME
+soplos-store \- Modern software center for Soplos Linux
+.SH SYNOPSIS
+.B soplos-store
+[\fIOPTIONS\fR] [\fIFILE\fR]
+.SH DESCRIPTION
+.B soplos-store
+is the primary software center application for Soplos Linux installations.
+It provides a unified, beautiful, and secure interface for discovering, installing,
+updating, and removing applications across multiple packaging formats:
+.IP \[bu] 2
+Native Debian packages (APT).
+.IP \[bu]
+Flatpak applications from Flathub.
+.IP \[bu]
+Snap packages from the Snap Store.
+.IP \[bu]
+Standalone AppImages integrated into ~/AppImages with desktop launchers.
+.IP \[bu]
+System firmware updates via fwupd and LVFS.
+.P
+Designed to be lightweight and responsive with Tauri 2, Rust, and modern web technologies,
+offering desktop-agnostic integration across XFCE 4.20, KDE Plasma 6, and GNOME 48+.
+.SH OPTIONS
+.TP
+.B \-\-updates
+Launch the application directly into the Updates view.
+.TP
+.B \-\-tray
+Run in background mode as an update notifier with a system tray icon and desktop notifications.
+.TP
+.B \-\-check-updates
+Execute an automated background check for available updates and update the cache (invoked by systemd user timer).
+.TP
+.B \-\-privileged-refresh
+Internal Polkit-authenticated task for passwordless repository synchronization.
+.TP
+.B \-\-privileged \fIACTION\fR [\fIARGS...\fR]
+Internal Polkit-authenticated task for package management actions (install, remove, update).
+.TP
+.B \-h, \-\-help
+Show summary of options.
+.SH SUPPORTED FILES
+When launched with a file path as an argument,
+.B soplos-store
+inspects and offers one-click installation for:
+.IP \[bu] 2
+.B .deb
+Debian binary package files.
+.IP \[bu]
+.B .flatpak
+Flatpak single-file bundle archives.
+.IP \[bu]
+.B .flatpakref
+Flatpak repository application references.
+.IP \[bu]
+.B .snap
+Snap package files.
+.IP \[bu]
+.B .AppImage
+Linux standalone AppImage executables (automatically integrated into ~/AppImages).
+.SH FILES
+.TP
+.I /etc/xdg/autostart/soplos-store-tray.desktop
+System autostart entry for the update notifier tray service.
+.TP
+.I /usr/lib/systemd/user/soplos-store-updates.timer
+Systemd user timer triggering periodic background update checks.
+.TP
+.I /usr/share/polkit-1/actions/org.soplos.store.policy
+Polkit policy defining administrator privileges for APT operations.
+.TP
+.I ~/.cache/soplos-store/
+User-specific cache directory for catalog data and update status.
+.SH AUTHOR
+Written by Sergi Perich <info@soploslinux.com> for the Soplos Linux project.
+.SH COPYRIGHT
+Copyright \(co 2026 Sergi Perich.
+License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>.
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.SH SEE ALSO
+.BR soplos-welcome (1),
+.BR soplos-repo-selector (1),
+.BR apt (8),
+.BR flatpak (1)

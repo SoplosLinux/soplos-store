@@ -34,6 +34,8 @@
       installedOk = await runJob(title, { action: "install-file", source: "flatpak", file: pkg.path, scope }, path);
     } else if (pkg.kind === "snap") {
       installedOk = await runJob(title, { action: "install-file", source: "snap", file: pkg.path }, path);
+    } else if (pkg.kind === "appimage") {
+      installedOk = await runJob(title, { action: "install-file", source: "appimage", file: pkg.path }, path);
     }
   }
 
@@ -66,25 +68,23 @@
       {#if pkg.summary}
         <p class="text-[0.85rem] text-text mt-1">{pkg.summary}</p>
       {/if}
-      <div class="mt-3">
+      <div class="mt-3 flex items-center gap-3">
+        <button
+          class="px-3 py-1.5 rounded bg-primary hover:bg-primary-hover text-white text-[0.78rem] font-semibold disabled:opacity-60 disabled:cursor-default"
+          disabled={running || installedOk}
+          on:click={install}
+        >
+          {running ? $_("common.installing") : installedOk ? $_("settings.installedTag") : $_("common.install")}
+        </button>
         {#if pkg.kind === "appimage"}
-          <p class="text-[0.78rem] text-text-muted mb-2">{$_("local.appimageNote")}</p>
-          <button class="px-3 py-1.5 rounded bg-primary hover:bg-primary-hover text-white text-[0.78rem] font-semibold" on:click={openManager}>
+          <button class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.78rem]" on:click={openManager}>
             {$_("local.openManager")}
-          </button>
-          {#if launchError}
-            <p class="text-[0.75rem] text-danger mt-2">{launchError}</p>
-          {/if}
-        {:else}
-          <button
-            class="px-3 py-1.5 rounded bg-primary hover:bg-primary-hover text-white text-[0.78rem] font-semibold disabled:opacity-60 disabled:cursor-default"
-            disabled={running || installedOk}
-            on:click={install}
-          >
-            {running ? $_("common.installing") : installedOk ? $_("settings.installedTag") : $_("common.install")}
           </button>
         {/if}
       </div>
+      {#if launchError}
+        <p class="text-[0.75rem] text-danger mt-2">{launchError}</p>
+      {/if}
     </div>
   </div>
 
