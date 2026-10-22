@@ -9,8 +9,8 @@ use serde_json::Value;
 
 use crate::apt::{self, AptApp};
 use crate::flathub::{self, Hit};
-use crate::models::{AppCard, AppDetail, AptStatus, InstalledApp, Section, SourceOption, SourcesStatus, UpdateItem};
-use crate::{appimage, checker, desktop, flatpak, fwupd, odrs, snap, system};
+use crate::models::{AppCard, AppDetail, AptStatus, InstalledApp, Section, SourceOption, SourcesStatus, UpdateItem, UpdatesView};
+use crate::{appimage, appimage_update, checker, desktop, flatpak, fwupd, odrs, settings, snap, system};
 
 /// Flathub category IDs and the matching AppStream main category.
 pub const CATEGORIES: [(&str, &str); 10] = [
@@ -49,8 +49,8 @@ fn normalize_name(name: &str) -> String {
 /// it too, and None is returned otherwise.
 fn card_from_hit(hit: &Hit, state: &InstalledState) -> Option<AppCard> {
     let apt_app = apt::find(&hit.id, &hit.name);
-    // APT first: it is the system's own source. The frontend reorders
-    // them by the preferred source chosen in Settings.
+    // APT first: it is the system's own source, and the app page starts on
+    // it; the user picks another source there.
     let mut refs = Vec::new();
     if let Some(app) = apt_app {
         refs.push(apt_ref(app, state));
@@ -620,58 +620,120 @@ fn installed_apps() -> Vec<InstalledApp> {
     apps
 }
 
-fn updates() -> Vec<UpdateItem> {
-    // The three sources are asked at the same time, and the two that use
-    // the network have a time limit, so one slow answer cannot hold the
-    // whole screen.
-    let (apt_updates, flatpak_updates, snap_updates, firmware_updates) = std::thread::scope(|scope| {
-        let a = scope.spawn(apt::upgradable);
-        let f = scope.spawn(flatpak::updates);
-        let s = scope.spawn(snap::updates);
-        let w = scope.spawn(fwupd::updates);
-        (a.join().unwrap_or_default(), f.join().unwrap_or_default(), s.join().unwrap_or_default(), w.join().unwrap_or_default())
-    });
-    let mut items = Vec::new();
-    for (package, from, to) in apt_updates {
-        let app = apt::app_for_package(&package);
-        items.push(UpdateItem {
-            id: package.clone(),
-            name: app.map(|a| a.name.clone()).unwrap_or(package),
-            icon: app.and_then(|a| a.icon.clone()),
-            source: "apt".into(),
-            from,
-            to,
-        });
+/// What one source found and how long it took to answer.
+pub struct SourceScan {
+    pub label: &'static str,
+    pub items: Vec<UpdateItem>,
+    pub took: std::time::Duration,
+}
+
+fn timed(label: &'static str, find: impl FnOnce() -> Vec<UpdateItem>) -> SourceScan {
+    let start = std::time::Instant::now();
+    let items = find();
+    SourceScan { label, items, took: start.elapsed() }
+}
+
+fn apt_updates() -> Vec<UpdateItem> {
+    apt::upgradable()
+        .into_iter()
+        .map(|(package, from, to)| UpdateItem { id: package.clone(), name: package, icon: None, source: "apt".into(), from, to })
+        .collect()
+}
+
+fn flatpak_updates() -> Vec<UpdateItem> {
+    let found = flatpak::updates();
+    if found.is_empty() {
+        return Vec::new();
     }
-    let installed_flatpaks: HashMap<String, flatpak::Installed> = flatpak::installed().into_iter().map(|a| (a.id.clone(), a)).collect();
-    for (id, name, to) in flatpak_updates {
-        let local = installed_flatpaks.get(&id);
-        items.push(UpdateItem {
-            icon: local.and_then(|a| flatpak::icon(&a.id, &a.scope)),
-            from: local.map(|a| a.version.clone()).unwrap_or_default(),
+    let versions: HashMap<String, String> = flatpak::installed().into_iter().map(|a| (a.id, a.version)).collect();
+    found
+        .into_iter()
+        .map(|(id, name, to)| UpdateItem {
+            from: versions.get(&id).cloned().unwrap_or_default(),
             name: if name.is_empty() { id.clone() } else { name },
             id,
+            icon: None,
             source: "flatpak".into(),
             to,
-        });
+        })
+        .collect()
+}
+
+fn snap_updates() -> Vec<UpdateItem> {
+    let found = snap::updates();
+    if found.is_empty() {
+        return Vec::new();
     }
-    let installed_snaps: HashMap<String, String> = snap::installed().into_iter().map(|s| (s.name, s.version)).collect();
-    for (name, to) in snap_updates {
-        items.push(UpdateItem {
-            icon: snap::local_icon(&name),
-            from: installed_snaps.get(&name).cloned().unwrap_or_default(),
-            id: name.clone(),
-            name,
-            source: "snap".into(),
-            to,
-        });
+    let versions: HashMap<String, String> = snap::installed().into_iter().map(|s| (s.name, s.version)).collect();
+    found
+        .into_iter()
+        .map(|(name, to)| UpdateItem { from: versions.get(&name).cloned().unwrap_or_default(), id: name.clone(), name, icon: None, source: "snap".into(), to })
+        .collect()
+}
+
+fn appimage_updates() -> Vec<UpdateItem> {
+    appimage_update::updates()
+        .into_iter()
+        .map(|u| UpdateItem { id: u.file, name: u.name, icon: None, source: "appimage".into(), from: u.from, to: u.to })
+        .collect()
+}
+
+fn firmware_updates() -> Vec<UpdateItem> {
+    fwupd::updates()
+        .into_iter()
+        .map(|u| UpdateItem { id: u.device_id, name: u.name, icon: None, source: "firmware".into(), from: u.from, to: u.to })
+        .collect()
+}
+
+/// The one check: every source is asked once, all at the same time and each
+/// with its own time limit, so a slow answer cannot hold the others up. The
+/// items carry no icon and the app name is the package name: the tray
+/// notifier does this without loading Debian's app metadata, and `decorate`
+/// adds both when the list is shown.
+pub fn scan() -> Vec<SourceScan> {
+    std::thread::scope(|scope| {
+        let apt = scope.spawn(|| Some(timed("APT", apt_updates)));
+        let flatpak = scope.spawn(|| flatpak::available().then(|| timed("Flatpak", flatpak_updates)));
+        let snap = scope.spawn(|| snap::available().then(|| timed("Snap", snap_updates)));
+        let appimage = scope.spawn(|| appimage_update::any_checkable().then(|| timed("AppImage", appimage_updates)));
+        // With firmware turned off in Settings fwupd is not asked at all.
+        let firmware = scope.spawn(|| (fwupd::available() && settings::firmware_enabled()).then(|| timed("Firmware", firmware_updates)));
+        [apt, flatpak, snap, appimage, firmware].into_iter().filter_map(|handle| handle.join().ok().flatten()).collect()
+    })
+}
+
+/// Adds what the check leaves out, the name and the icon of each app, from
+/// local data only: Debian's app metadata, the icons Flatpak and Snap
+/// export and the launcher of each AppImage. No command and no network.
+fn decorate(mut items: Vec<UpdateItem>) -> Vec<UpdateItem> {
+    let appimage_icons: HashMap<String, Option<String>> = if items.iter().any(|i| i.source == "appimage") {
+        appimage::installed().into_iter().map(|a| (a.file, a.icon)).collect()
+    } else {
+        HashMap::new()
+    };
+    for item in &mut items {
+        match item.source.as_str() {
+            "apt" => {
+                if let Some(app) = apt::app_for_package(&item.id) {
+                    item.name = app.name.clone();
+                    item.icon = app.icon.clone();
+                }
+            }
+            "flatpak" => item.icon = flatpak::icon(&item.id, "user").or_else(|| flatpak::icon(&item.id, "system")),
+            "snap" => item.icon = snap::local_icon(&item.id),
+            "appimage" => item.icon = appimage_icons.get(&item.id).cloned().flatten(),
+            _ => {}
+        }
     }
-    for update in firmware_updates {
-        items.push(UpdateItem { id: update.device_id, name: update.name, icon: None, source: "firmware".into(), from: update.from, to: update.to });
-    }
-    // The tray shows the stored count, so the page keeps it up to date.
-    checker::store(items.len());
     items
+}
+
+/// The result of the last check, read from the file the tray uses too. It
+/// is checked again only when asked to, or when there is no result yet.
+fn updates_view(force: bool) -> UpdatesView {
+    let stored = if force { None } else { checker::read().filter(|s| s.items.is_some()) };
+    let stored = stored.unwrap_or_else(checker::scan_and_store);
+    UpdatesView { checked_at: stored.checked_at, items: decorate(stored.items.unwrap_or_default()) }
 }
 
 #[tauri::command]
@@ -699,9 +761,16 @@ pub async fn get_installed() -> Vec<InstalledApp> {
     tauri::async_runtime::spawn_blocking(installed_apps).await.unwrap_or_default()
 }
 
+/// The updates of the last check, instantly.
 #[tauri::command]
-pub async fn get_updates() -> Vec<UpdateItem> {
-    tauri::async_runtime::spawn_blocking(updates).await.unwrap_or_default()
+pub async fn get_updates() -> UpdatesView {
+    tauri::async_runtime::spawn_blocking(|| updates_view(false)).await.unwrap_or_default()
+}
+
+/// Looks in every source again (no `apt update`) and stores the result.
+#[tauri::command]
+pub async fn rescan_updates() -> UpdatesView {
+    tauri::async_runtime::spawn_blocking(|| updates_view(true)).await.unwrap_or_default()
 }
 
 /// State of apt's package lists, to tell the user when they are stale.
@@ -747,4 +816,66 @@ pub fn prewarm() {
         let _ = apt::index();
         let _ = odrs::lookup("");
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // These set XDG_CACHE_HOME, so they run one at a time:
+    // cargo test updates_view -- --test-threads=1
+    fn cache_in(name: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("soplos-store-test-{}-{name}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::env::set_var("XDG_CACHE_HOME", &dir);
+        dir
+    }
+
+    fn firmware(id: &str) -> UpdateItem {
+        UpdateItem { id: id.into(), name: format!("Device {id}"), icon: None, source: "firmware".into(), from: "1.0".into(), to: "2.0".into() }
+    }
+
+    #[test]
+    fn the_page_shows_the_stored_result_without_looking_again() {
+        let dir = cache_in("stored");
+        let saved = checker::save(vec![firmware("a"), firmware("b")]);
+        let view = updates_view(false);
+        // A new look would have stored what this machine really has.
+        assert_eq!(view.items.len(), 2);
+        assert_eq!(view.checked_at, saved.checked_at);
+        assert_eq!(checker::read().unwrap().count, 2);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_tray_count_and_the_page_list_are_the_same_result() {
+        let dir = cache_in("same");
+        checker::save(vec![firmware("a"), firmware("b"), firmware("c")]);
+        let count = checker::read().unwrap().count;
+        assert_eq!(count, updates_view(false).items.len());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_file_written_before_the_list_was_kept_has_no_result() {
+        let dir = cache_in("old");
+        std::fs::write(crate::cache::dir("").join("updates.json"), br#"{"count":3,"checkedAt":5}"#).unwrap();
+        let stored = checker::read().unwrap();
+        assert!(stored.items.is_none());
+        assert_eq!(stored.count, 3);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    #[ignore]
+    fn with_no_result_the_page_looks_once_and_keeps_it() {
+        let dir = cache_in("none");
+        std::fs::write(crate::cache::dir("").join("updates.json"), br#"{"count":3,"checkedAt":5}"#).unwrap();
+        let view = updates_view(false);
+        let stored = checker::read().unwrap();
+        assert!(stored.items.is_some());
+        assert_eq!(stored.count, view.items.len());
+        assert!(stored.checked_at > 5);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

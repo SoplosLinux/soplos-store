@@ -1,19 +1,26 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
-  import { CATEGORIES } from "../lib/categories";
+  import { CATEGORIES, SUBCATEGORIES } from "../lib/categories";
+  import CategoryCard from "../components/CategoryCard.svelte";
 
   export let onOpenCategory: (id: string) => void;
+
+  // A few of the subcategories of each one, to say what is inside.
+  const hintOf = (id: string) =>
+    (SUBCATEGORIES[id] ?? [])
+      .slice(0, 4)
+      .map((sub) => $_(`subcategories.${sub}`))
+      .join(" · ");
 </script>
 
-<div class="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-3.5">
+<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(15rem,1fr))]">
   {#each CATEGORIES as category (category.id)}
-    <button
-      class="relative h-[120px] rounded border border-border p-4 overflow-hidden text-left text-white transition-transform hover:-translate-y-0.5 hover:border-white/35"
-      style="background: {category.background}"
+    <CategoryCard
+      icon={category.icon}
+      color={category.color}
+      title={$_(`categories.${category.id}`)}
+      hint={hintOf(category.id)}
       on:click={() => onOpenCategory(category.id)}
-    >
-      <div class="text-[1rem] font-bold max-w-[65%] leading-tight">{$_(`categories.${category.id}`)}</div>
-      <svelte:component this={category.icon} size={64} strokeWidth={1.5} class="absolute right-3 bottom-3 text-white/80" />
-    </button>
+    />
   {/each}
 </div>

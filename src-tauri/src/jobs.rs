@@ -11,12 +11,15 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 
-use crate::{apt, flatpak, fwupd, i18n, snap, validate};
+use crate::{appimage_update, apt, catalog, checker, flatpak, fwupd, i18n, nvidia, settings, validate, vendor};
 
 const FLATHUB_REPO: &str = "https://dl.flathub.org/repo/flathub.flatpakrepo";
 
 /// pkexec exit codes for a dismissed or refused password dialog.
 const PKEXEC_CANCELLED: [i32; 2] = [126, 127];
+
+/// `timeout` exit codes: it stopped the command (124) or had to kill it (137).
+const TIMED_OUT: [i32; 2] = [124, 137];
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 static ONE_AT_A_TIME: Mutex<()> = Mutex::new(());
@@ -72,17 +75,35 @@ pub fn start_job(app: AppHandle, request: JobRequest) -> Result<u64, String> {
                 let _ = app.emit("job-line", JobLine { id, line: command[1].clone() });
                 continue;
             }
-            if command[0] == "#report" {
-                total += report(&app, id, &command[1]);
+            if command[0] == "#scan" {
+                total = scan_step(&app, id);
+                continue;
+            }
+            if command[0] == "#appimage-update" {
+                let mut say = |line: String| {
+                    let _ = app.emit("job-line", JobLine { id, line });
+                };
+                if let Err(error) = appimage_update::apply(&command[1], &mut say) {
+                    say(error);
+                    success = false;
+                    break;
+                }
                 continue;
             }
             match run_step(&app, id, command) {
                 Ok(0) => {}
-                Ok(_) if tolerant => {}
                 Ok(code) => {
-                    success = false;
-                    cancelled = command[0] == "pkexec" && PKEXEC_CANCELLED.contains(&code);
-                    break;
+                    // `timeout` ends with 124 when it stopped the command, or
+                    // 137 when it had to kill it; say so, because the command
+                    // itself writes nothing when it is cut off.
+                    if command[0] == "timeout" && TIMED_OUT.contains(&code) {
+                        let _ = app.emit("job-line", JobLine { id, line: i18n::t("checklog.timedOut") });
+                    }
+                    if !tolerant {
+                        success = false;
+                        cancelled = command[0] == "pkexec" && PKEXEC_CANCELLED.contains(&code);
+                        break;
+                    }
                 }
                 Err(error) => {
                     let _ = app.emit("job-line", JobLine { id, line: error });
@@ -177,6 +198,23 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
             vec![privileged("apt-upgrade", ids)?]
         }
         ("apt", "install-file") if validate::package_file(&file, &["deb"]) => vec![privileged("apt-install-file", &[file])?],
+        // Drivers: the branch or package is checked here against the closed
+        // lists of nvidia.rs, and the helper that runs as root checks it again.
+        ("driver", "install") => {
+            let [id] = ids.as_slice() else {
+                return Err("one driver at a time".into());
+            };
+            if nvidia::CUDA_BRANCHES.contains(&id.as_str()) {
+                vec![privileged("nvidia-install-cuda", ids)?]
+            } else if nvidia::REPO_PACKAGES.contains(&id.as_str()) {
+                vec![privileged("nvidia-install-repo", ids)?]
+            } else if vendor::is_item(id) {
+                vec![privileged("vendor-install", ids)?]
+            } else {
+                return Err(format!("unknown driver: {id}"));
+            }
+        }
+        ("driver", "remove") => vec![privileged("nvidia-remove", &[])?],
         ("apt", "refresh") => vec![privileged_refresh()?],
         ("apt", "autoremove") => vec![privileged("apt-autoremove", &[])?],
         ("apt", "clean") => vec![privileged("apt-clean", &[])?],
@@ -261,6 +299,11 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
             }
             vec![vec!["#echo".to_string(), "OK".to_string()]]
         }
+        // The download runs inside the job, so the plan only names the files.
+        ("appimage", "update") => {
+            need_ids(validate::appimage_file)?;
+            ids.iter().map(|id| strings(&["#appimage-update", id])).collect()
+        }
         ("appimage", "install-file") => {
             crate::appimage::install_file(std::path::Path::new(&file))?;
             vec![vec!["#echo".to_string(), "OK".to_string()]]
@@ -269,33 +312,30 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
         // Firmware goes through fwupd, which asks for authorization itself.
         ("firmware", "update") => {
             need_ids(validate::fwupd_device_id)?;
-            ids.iter().map(|id| strings(&["fwupdmgr", "update", id, "-y", "--no-reboot-check"])).collect()
+            // The limit is long because the download and the writing to the
+            // device can take minutes; it is only there so an unreachable
+            // LVFS cannot hold the job for good.
+            ids.iter().map(|id| strings(&["timeout", "--kill-after=30", "1800", "fwupdmgr", "update", id, "-y", "--no-reboot-check"])).collect()
         }
-        ("firmware", "testing-on") => vec![strings(&["fwupdmgr", "enable-remote", "lvfs-testing", "-y"]), strings(&["fwupdmgr", "refresh", "--force"])],
+        ("firmware", "testing-on") => vec![strings(&["fwupdmgr", "enable-remote", "lvfs-testing", "-y"]), firmware_refresh(true)],
         ("firmware", "testing-off") => vec![strings(&["fwupdmgr", "disable-remote", "lvfs-testing", "-y"])],
 
-        // "Check now": every installed source, one after another, in the
-        // same order as Soplos Welcome: APT first (it refreshes the package
-        // lists and asks for the password), then Snap and Flatpak. After
-        // each one a "#report" step lists what it found and says so when
-        // there is nothing, so the log never ends on a bare heading. The
-        // Updates page reads all three sources again when the job ends.
+        // "Check now", in three steps: refresh apt's package lists (asks for
+        // the password), refresh the firmware metadata, and look in every
+        // source once ("#scan"). The scan stores its result, which is what
+        // the Updates page and the tray notifier read when the job ends, so
+        // nothing is asked a second time.
         ("all", "check") => {
             let heading = |key: &str| vec!["#echo".to_string(), i18n::t(key)];
-            let mut steps: Vec<Vec<String>> = vec![heading("checklog.apt"), privileged_refresh()?, strings(&["#report", "apt"])];
-            if snap::available() {
-                steps.push(heading("checklog.snap"));
-                steps.push(strings(&["#report", "snap"]));
-            }
-            if flatpak::available() {
-                steps.push(heading("checklog.flatpak"));
-                steps.push(strings(&["#report", "flatpak"]));
-            }
-            if fwupd::available() {
+            let mut steps: Vec<Vec<String>> = vec![heading("checklog.apt"), privileged_refresh()?];
+            // Firmware is left out entirely when it is turned off in Settings.
+            if fwupd::available() && settings::firmware_enabled() {
                 steps.push(heading("checklog.firmware"));
-                steps.push(vec!["?".into(), "fwupdmgr".into(), "refresh".into(), "--force".into()]);
-                steps.push(strings(&["#report", "firmware"]));
+                let mut refresh = firmware_refresh(false);
+                refresh.insert(0, "?".into());
+                steps.push(refresh);
             }
+            steps.push(strings(&["#scan"]));
             steps
         }
 
@@ -304,22 +344,47 @@ fn plan(request: &JobRequest) -> Result<Vec<Vec<String>>, String> {
     Ok(steps)
 }
 
-/// Writes what one source has pending (one line per update) and a result
-/// line, and returns how many updates it found.
-fn report(app: &AppHandle, id: u64, source: &str) -> usize {
-    let (label, lines): (&str, Vec<String>) = match source {
-        "apt" => ("APT", apt::upgradable().into_iter().map(|(name, from, to)| format!("  {name}  {from} -> {to}")).collect()),
-        "snap" => ("Snap", snap::updates().into_iter().map(|(name, version)| format!("  {name}  {version}")).collect()),
-        "firmware" => ("Firmware", fwupd::updates().into_iter().map(|u| format!("  {}  {} -> {}", u.name, u.from, u.to)).collect()),
-        _ => ("Flatpak", flatpak::updates().into_iter().map(|(app_id, _, version)| format!("  {app_id}  {version}")).collect()),
-    };
-    let count = lines.len();
-    for line in lines {
-        let _ = app.emit("job-line", JobLine { id, line });
+/// Refreshes the LVFS firmware metadata. It goes through `timeout` because
+/// fwupdmgr waits as long as the server takes to answer, and when the LVFS
+/// is down that would hold up the whole job for good.
+///
+/// With `force` the metadata is downloaded again even when it is up to date;
+/// the check does not need that, only turning on the testing channel does.
+fn firmware_refresh(force: bool) -> Vec<String> {
+    let mut command = strings(&["timeout", "--kill-after=10", "120", "fwupdmgr", "refresh"]);
+    if force {
+        command.push("--force".into());
     }
-    let result = if count == 0 { i18n::t("checklog.none") } else { i18n::t_n("checklog.found", count) };
-    let _ = app.emit("job-line", JobLine { id, line: format!("{label}: {result}") });
-    count
+    command
+}
+
+/// The check itself: every source is asked once, all at the same time. The
+/// log gets a block per source (the updates it found, then the count and how
+/// long the source took to answer) and the result is stored for the page and
+/// the tray notifier. Returns how many updates there are.
+fn scan_step(app: &AppHandle, id: u64) -> usize {
+    let say = |line: String| {
+        let _ = app.emit("job-line", JobLine { id, line });
+    };
+    apt::invalidate_installed();
+    let mut all = Vec::new();
+    for source in catalog::scan() {
+        for item in &source.items {
+            say(format!("  {}  {} -> {}", item.name, item.from, item.to));
+        }
+        let result = if source.items.is_empty() { i18n::t("checklog.none") } else { i18n::t_n("checklog.found", source.items.len()) };
+        say(format!("{}: {result} ({:.1} s)", source.label, source.took.as_secs_f32()));
+        all.extend(source.items);
+    }
+    // AppImages without a version or an address are not looked at; they
+    // are filled in by hand in AppImage Manager.
+    let skipped = appimage_update::without_data();
+    if skipped > 0 {
+        say(i18n::t_n("checklog.appimageHint", skipped));
+    }
+    let total = all.len();
+    checker::save(all);
+    total
 }
 
 fn run_step(app: &AppHandle, id: u64, command: &[String]) -> Result<i32, String> {
@@ -365,5 +430,35 @@ fn forward(app: &AppHandle, id: u64, stream: impl Read) {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod driver_tests {
+    use super::*;
+
+    fn request(action: &str, ids: &[&str]) -> JobRequest {
+        JobRequest { action: action.into(), source: "driver".into(), ids: ids.iter().map(|s| s.to_string()).collect(), scope: None, file: None }
+    }
+
+    fn mentions(steps: &[Vec<String>], word: &str) -> bool {
+        steps.iter().flatten().any(|part| part == word)
+    }
+
+    #[test]
+    fn a_listed_branch_becomes_the_matching_privileged_action() {
+        assert!(mentions(&plan(&request("install", &["590"])).unwrap(), "nvidia-install-cuda"));
+        assert!(mentions(&plan(&request("install", &["nvidia-driver"])).unwrap(), "nvidia-install-repo"));
+        assert!(mentions(&plan(&request("remove", &[])).unwrap(), "nvidia-remove"));
+        assert!(mentions(&plan(&request("install", &["oneapi-mkl"])).unwrap(), "vendor-install"));
+    }
+
+    #[test]
+    fn anything_not_in_the_closed_lists_is_refused() {
+        assert!(plan(&request("install", &["999"])).is_err());
+        assert!(plan(&request("install", &["590; reboot"])).is_err());
+        assert!(plan(&request("install", &["bash"])).is_err());
+        assert!(plan(&request("install", &[])).is_err());
+        assert!(plan(&request("install", &["580", "590"])).is_err(), "one driver at a time");
     }
 }

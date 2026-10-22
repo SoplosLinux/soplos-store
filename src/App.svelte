@@ -2,7 +2,7 @@
   import { onMount, onDestroy, tick } from "svelte";
   import { listen, type UnlistenFn } from "@tauri-apps/api/event";
   import { getCurrentWindow } from "@tauri-apps/api/window";
-  import { Compass, LayoutGrid, Package, RefreshCw, SlidersHorizontal } from "lucide-svelte";
+  import { Compass, Cpu, LayoutGrid, Package, RefreshCw, SlidersHorizontal } from "lucide-svelte";
   import { api } from "./lib/api";
   import { busy } from "./lib/busy";
   import { searchRequest } from "./lib/search";
@@ -20,6 +20,7 @@
   import PackageFile from "./views/PackageFile.svelte";
   import Installed from "./views/Installed.svelte";
   import Updates from "./views/Updates.svelte";
+  import Drivers from "./views/Drivers.svelte";
   import Settings from "./views/Settings.svelte";
 
   // The footer never shows the package revision, only the base version.
@@ -30,6 +31,7 @@
     { id: "categories", icon: LayoutGrid },
     { id: "installed", icon: Package },
     { id: "updates", icon: RefreshCw },
+    { id: "drivers", icon: Cpu },
     { id: "settings", icon: SlidersHorizontal },
   ];
 
@@ -49,7 +51,12 @@
   $: page = stack[stack.length - 1];
   $: footerLabel = [envLabel, FOOTER_VERSION].filter(Boolean).join(" · ");
 
+  // Choosing Drivers while on it goes back to the categories: the page is
+  // made again.
+  let driversKey = 0;
+
   function selectTab(id: string) {
+    if (id === "drivers" && active === "drivers") driversKey++;
     active = id;
     stack = [];
     scrollTop();
@@ -181,6 +188,10 @@
           <Installed onOpenApp={openApp} />
         {:else if active === "updates"}
           <Updates />
+        {:else if active === "drivers"}
+          {#key driversKey}
+            <Drivers />
+          {/key}
         {:else}
           <Settings />
         {/if}

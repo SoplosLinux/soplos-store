@@ -4,6 +4,7 @@
     "categories": "Kategorien",
     "installed": "Installiert",
     "updates": "Aktualisierungen",
+    "drivers": "Treiber",
     "settings": "Einstellungen"
   },
   "sidebar": {
@@ -66,7 +67,7 @@
     "popular": "Beliebt",
     "trending": "Im Trend",
     "featuredApp": "App der Woche",
-    "topIn": "Top in {section}"
+    "topIn": "Das Beste in {section}"
   },
   "categories": {
     "audiovideo": "Audio und Video",
@@ -235,6 +236,111 @@
     "quit": "Beenden",
     "available": "{n} Aktualisierungen verfügbar"
   },
+  "drivers": {
+    "detecting": "Ihre Grafikkarte wird erkannt...",
+    "none": "Es wurde keine Grafikkarte erkannt.",
+    "yourGpu": "Ihre Grafikkarte",
+    "recommended": "Empfohlen",
+    "install": "Installieren",
+    "remove": "Entfernen",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "installMissing": "Fehlende Treiber installieren",
+    "installing": "{name} wird installiert",
+    "removingNvidia": "NVIDIA-Treiber wird entfernt",
+    "status": { "installed": "Installiert", "different": "Andere Version", "partial": "Unvollständig", "missing": "Nicht installiert" },
+    "type": { "dedicated": "Dediziert", "integrated": "Integriert", "both": "Dediziert oder integriert", "virtual": "Virtuell" },
+    "hero": {
+      "recommended": "Der passende Treiber für diese Karte: {name}.",
+      "nouveau": "Diese Karte läuft am besten mit Nouveau, dem freien Treiber, der mit dem Kernel kommt.",
+      "packagesReady": "Die Treiber für diese Karte sind installiert.",
+      "packagesMissing": "Einige Treiber für diese Karte fehlen.",
+      "virtual": "Dies ist ein virtueller Grafikadapter: Hier gibt es nichts zu installieren."
+    },
+    "nvidia": {
+      "title": "NVIDIA-Treiber",
+      "subtitle": "Wählen Sie den Zweig, der zu Ihrer Karte passt. Die Installation eines Zweigs ersetzt jeden anderen NVIDIA-Treiber. Ohne NVIDIA-Treiber verwendet das System Nouveau.",
+      "removeAll": "NVIDIA entfernen und zu Nouveau zurückkehren",
+      "confirmInstall": "Ein bereits installierter NVIDIA-Treiber wird zuerst entfernt, das Modul wird für Ihre Kernel gebaut und danach ist ein Neustart nötig.",
+      "confirmRemove": "Alle NVIDIA- und CUDA-Pakete werden entfernt und Nouveau übernimmt nach einem Neustart.",
+      "needsTuring": "Benötigt eine Turing-Karte oder neuer (GTX 16xx, RTX).",
+      "noCard": "Es wurde keine NVIDIA-Karte erkannt."
+    },
+    "removing": "{name} wird entfernt",
+    "printers": {
+      "yours": "Ihr Drucker",
+      "noteDebian": "Freie Treiber des Herstellers oder der Gemeinschaft, aus Debian.",
+      "noteOfficial": "Die Treiber sind modellabhängig: Sie werden von der offiziellen Website des Herstellers geladen.",
+      "official": "Offizielle {name}-Treiber",
+      "officialHint": "Laden Sie den Treiber Ihres Modells von der offiziellen Seite des Herstellers.",
+      "open": "Offizielle Website öffnen",
+      "sections": { "base": "Drucksystem", "others": "Weitere Hersteller", "makers": "Hersteller", "tools": "Werkzeuge" },
+      "cards": {
+        "cups": { "title": "Drucksystem (CUPS)", "hint": "CUPS, Filter, treiberloses Drucken über USB und das Druckerwerkzeug." },
+        "pdf": { "title": "In PDF drucken", "hint": "Ein virtueller Drucker, der jedes Dokument als PDF speichert." },
+        "gutenprint": { "title": "Gutenprint", "hint": "Freie Treiber für viele Tintenstrahl- und Laserdrucker mehrerer Hersteller." },
+        "hp": { "title": "HP-Treiber (HPLIP)", "hint": "HPLIP mit grafischer Oberfläche und PostScript. Verlangt Ihr Modell das proprietäre Plugin, wird es über HP Device Manager hinzugefügt." },
+        "brother": { "title": "Brother-Treiber", "hint": "Der freie Treiber brlaser für viele Brother-Laserdrucker." },
+        "epson": { "title": "Epson-Treiber (ESC/P-R)", "hint": "Der Treiber von Epson für seine Tintenstrahldrucker." },
+        "xerox": { "title": "Treiber für Xerox", "hint": "Die Treiber fujixerox und foo2zjs für Xerox, Fuji Xerox und andere kompatible Modelle." },
+        "ricoh": { "title": "Ricoh-Treiber", "hint": "Treiber für Ricoh-Aficio-Drucker der Serien SP 1000 und 1100." },
+        "oki": { "title": "OKI-Treiber", "hint": "Treiber für OKI-Drucker, die das herstellereigene Protokoll verwenden." },
+        "samsung": { "title": "Samsung-Treiber (SpliX)", "hint": "Der SpliX-Treiber für Samsung- und Xerox-Laserdrucker auf SPL-Basis." }
+      }
+    },
+    "soon":"Demnächst",
+    "back": "Alle Treiber",
+    "cat": {
+      "graphics": "Grafik", "printers": "Drucker", "scanners": "Scanner", "tablets": "Grafiktabletts", "labels": "Etiketten und Bons",
+      "capture": "Capture-Karten", "gaming": "Gaming-Peripherie", "wireless": "WLAN und Bluetooth", "laptops": "Notebooks und Hersteller", "audio": "Pro-Audio",
+      "network": "Netzwerk", "security": "Fingerabdruck und Sicherheit", "ups": "USV", "rgb": "RGB und Kühlung", "virtual": "Virtuelle Maschinen"
+    },
+    "vendors": {
+      "kicker": "Treiber und Werkzeuge",
+      "yours": "Ihr Computer",
+      "nvidia": { "name": "NVIDIA", "note": "Proprietäre Treiber mit CUDA für GeForce- und RTX-Karten." },
+      "amd": { "name": "AMD", "note": "Mesa und Vulkan für Radeon, mit Videobeschleunigung und OpenCL." },
+      "intel": { "name": "Intel", "note": "Mesa, Vulkan und Videobeschleunigung für Intel Graphics und Arc." },
+      "vmware": { "name": "VMware", "note": "Gast-Werkzeuge: Zwischenablage, gemeinsame Ordner und Anzeige." },
+      "virtualbox": { "name": "VirtualBox", "note": "Die Guest Additions kommen von VirtualBox selbst, nicht von Debian." },
+      "qemu": { "name": "QEMU / KVM", "note": "Agent und SPICE für Zwischenablage und Auflösung des Gasts." },
+      "virtmanager": { "name": "Virt-Manager", "note": "Grafische Verwaltung virtueller Maschinen mit KVM und libvirt." },
+      "boxes": { "name": "GNOME Boxes", "note": "Einfache virtuelle Maschinen, ohne etwas einzurichten." },
+      "proxmox": { "name": "Proxmox", "note": "Der QEMU-Agent für Gäste, die auf Proxmox VE laufen." }
+    },
+    "pack": {
+      "amd": { "title": "AMD-Treiber", "hint": "Mesa, Vulkan, OpenCL und Videobeschleunigung für Radeon." },
+      "intel": { "title": "Intel-Treiber", "hint": "Mesa, Vulkan und Videobeschleunigung für Intel." },
+      "vmware": { "title": "VMware-Werkzeuge", "hint": "open-vm-tools und sein Desktop-Teil." },
+      "virtualbox": { "title": "Guest Additions", "hint": "Werden von VirtualBox bereitgestellt.", "blocked": "Debian liefert diese Werkzeuge nicht mit. Bei laufender Maschine: Geräte → Gasterweiterungen-CD-Abbild einlegen." },
+      "qemu": { "title": "QEMU-Agent und SPICE", "hint": "Gemeinsame Zwischenablage und automatische Auflösung im Gast." },
+      "virtmanager": { "title": "Virt-Manager", "hint": "Enthält QEMU und den libvirt-Dienst." },
+      "boxes": { "title": "GNOME Boxes", "hint": "Virtuelle Maschinen mit wenigen Klicks erstellen und nutzen." },
+      "vendorConfirm": "Das offizielle Repository des Herstellers wird hinzugefügt, die Pakete werden installiert und das Repository wird wieder entfernt. Es können mehrere GB geladen werden.",
+      "amd-rocm": { "title": "ROCm: Laufzeit und OpenCL", "hint": "Um Berechnungen auf der GPU auszuführen: OpenCL, HIP und rocminfo." },
+      "amd-hip": { "title": "ROCm: HIP-Entwicklung", "hint": "Der Compiler hipcc und Header, um die AMD-GPU zu programmieren." },
+      "amd-math": { "title": "ROCm: Mathematikbibliotheken", "hint": "rocBLAS, rocFFT, rocSPARSE, rocSOLVER und hipBLAS." },
+      "amd-tools": { "title": "AMD-Werkzeuge", "hint": "radeontop, nvtop, Vulkan und clinfo, um zu sehen, was die Karte tut." },
+      "intel-compute": { "title": "Intel: OpenCL und Level Zero", "hint": "Berechnungen auf der Intel-Karte mit OpenCL und Level Zero." },
+      "intel-media": { "title": "Intel: Video mit oneVPL", "hint": "oneVPL und vainfo zum Kodieren und Dekodieren von Video in Hardware." },
+      "intel-tools": { "title": "Intel-Werkzeuge", "hint": "intel-gpu-tools, nvtop und Vulkan, um zu sehen, was die Karte tut." },
+      "oneapi-dpcpp": { "title": "oneAPI: DPC++-Compiler", "hint": "Intel-Compiler für CPU und GPU mit SYCL. Aus dem offiziellen Intel-Repository." },
+      "oneapi-mkl": { "title": "oneAPI: Math Kernel Library", "hint": "Mathematikbibliotheken von Intel, etwa BLAS und FFT. Aus dem offiziellen Intel-Repository." },
+      "oneapi-vtune": { "title": "oneAPI: VTune Profiler", "hint": "Leistungsprofiler von Intel. Aus dem offiziellen Intel-Repository." },
+      "oneapi-base": { "title": "oneAPI Base Toolkit", "hint": "Das komplette Intel-Paket: mehrere GB groß. Aus dem offiziellen Intel-Repository." },
+      "cuda-toolkit": { "title": "CUDA Toolkit", "hint": "nvcc und die CUDA-Bibliotheken zum Programmieren der NVIDIA-GPU. Aus dem offiziellen NVIDIA-Repository." },
+      "proxmox": { "title": "QEMU-Agent für Proxmox", "hint": "Erlaubt Proxmox, den Gast herunterzufahren und sein Netzwerk zu lesen." }
+    },
+    "branch": {
+      "610": { "label": "NVIDIA 610 (Neueste)", "hint": "Blackwell und neuer: RTX 50/60er-Serie" },
+      "590": { "label": "NVIDIA 590 (Stabil)", "hint": "Turing und neuer: GTX 16xx, RTX 20/30/40/50" },
+      "580": { "label": "NVIDIA 580 (Produktion)", "hint": "Maxwell bis Blackwell (GTX 900 → RTX 5000)" },
+      "nvidia-driver": { "label": "NVIDIA 550 (Repo)", "hint": "Maxwell bis Ada Lovelace" },
+      "nvidia-tesla-470-driver": { "label": "NVIDIA 470 (Legacy)", "hint": "Kepler bis Ampere — benötigt aktiviertes Debian Sid" },
+      "nvidia-legacy-390xx-driver": { "label": "NVIDIA 390 (Legacy)", "hint": "Fermi und Kepler — benötigt aktiviertes Debian Sid" },
+      "nvidia-legacy-340xx-driver": { "label": "NVIDIA 340 (Legacy)", "hint": "Tesla-Architektur — benötigt aktiviertes Debian Sid" }
+    }
+  },
   "checklog": {
     "apt": "APT: Paketlisten werden aktualisiert...",
     "snap": "Snap: Suche nach Aktualisierungen...",
@@ -243,7 +349,11 @@
     "found": "{n} Aktualisierungen verfügbar",
     "none": "alles ist aktuell",
     "doneSome": "Fertig: {n} Aktualisierungen verfügbar",
-    "doneNone": "Fertig: alles ist aktuell"
+    "doneNone": "Fertig: alles ist aktuell",
+    "timedOut": "Es dauerte zu lange und wurde abgebrochen: Der Server ist möglicherweise nicht erreichbar.",
+    "appimage": "AppImage: Suche nach Aktualisierungen...",
+    "appimageDownloading": "AppImage: Die neue Version wird heruntergeladen...",
+    "appimageHint": "{n} AppImages haben keine Version oder Update-Adresse und wurden übersprungen. Trage sie im AppImage Manager ein."
   },
   "settings": {
     "sources": "Softwarequellen",
@@ -265,6 +375,7 @@
     "firmwareDesc": "Aktualisierungen für BIOS und Geräte dieses Computers, vom LVFS über fwupd.",
     "firmwareMissing": "fwupd ist nicht installiert.",
     "installFwupd": "fwupd installieren",
+    "firmwareUpdates": "Firmware-Updates",
     "firmwareTesting": "Firmware-Testkanal",
     "firmwareTestingDesc": "Neuere Firmware, die noch getestet wird. Sie kann Probleme verursachen.",
     "enable": "Aktivieren",
@@ -273,17 +384,13 @@
     "notInstalled": "Nicht installiert",
     "appimage": "AppImage",
     "appimageDesc": "Werden mit Soplos AppImage Manager verwaltet.",
-    "preferred": "Bevorzugte Quelle",
-    "preferredDesc": "Wird verwendet, wenn eine App aus mehreren Quellen verfügbar ist.",
-    "prefApt": "Debian (APT)",
-    "prefFlathub": "Flathub",
-    "prefAsk": "Bei jeder App fragen",
     "allPackages": "Alle Pakete anzeigen",
     "allPackagesDesc": "Nicht nur Apps, sondern auch Bibliotheken und Kommandozeilenwerkzeuge.",
     "checks": "Suche nach Aktualisierungen",
     "auto": "Automatisch prüfen",
     "autoDesc": "Prüft ab der Anmeldung im Hintergrund und zeigt bei Aktualisierungen ein Symbol im Systembereich.",
     "frequency": "Häufigkeit",
+    "every1": "Jede Stunde",
     "every6": "Alle 6 Stunden",
     "every12": "Alle 12 Stunden",
     "daily": "Täglich",

@@ -18,6 +18,13 @@ pub struct InstalledAppImage {
     pub version: String,
     pub icon: Option<String>,
     pub size: String,
+    pub path: PathBuf,
+    /// Address of the releases, set by hand in AppImage Manager
+    /// (`X-AppImage-UpdateUrl`); empty when none was saved.
+    pub update_url: String,
+    /// The launcher AppImage Manager made for it, where the version and the
+    /// address are kept.
+    pub desktop_path: Option<PathBuf>,
 }
 
 pub fn home_dir() -> Result<PathBuf, String> {
@@ -387,7 +394,7 @@ fn unique_dest_path(dir: &Path, source: &Path) -> PathBuf {
     dest
 }
 
-fn update_desktop_db() {
+pub fn update_desktop_db() {
     if let Ok(dir) = desktop_dir() {
         let _ = Command::new("update-desktop-database").arg(dir).arg("-q").output();
     }
@@ -516,8 +523,12 @@ pub fn installed() -> Vec<InstalledAppImage> {
         let mut version = String::new();
         let mut comment = String::new();
         let mut icon_uri = None;
+        let mut update_url = String::new();
+        let mut desktop_path = None;
 
-        if let Some((_desktop_path, entry)) = match_entry {
+        if let Some((entry_path, entry)) = match_entry {
+            desktop_path = Some(entry_path.clone());
+            update_url = entry.get("X-AppImage-UpdateUrl").cloned().unwrap_or_default();
             if let Some(n) = entry.get("Name") {
                 name = n.clone();
             }
@@ -552,6 +563,9 @@ pub fn installed() -> Vec<InstalledAppImage> {
             version,
             icon: icon_uri,
             size: system::format_size(meta_len),
+            path: path.clone(),
+            update_url,
+            desktop_path,
         });
     }
 

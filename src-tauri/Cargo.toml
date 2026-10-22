@@ -1,6 +1,6 @@
 [package]
 name = "soplos-store"
-version = "3.0.0-3-beta"
+version = "3.0.0-5-beta"
 description = "Soplos Store"
 authors = ["Sergi Perich <info@soploslinux.com>"]
 license = "GPL-3.0-or-later"
@@ -20,6 +20,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # HTTP client for the Flathub, ODRS and Snap Store APIs.
 ureq = "3"
+# Date of a file on a server, to tell whether an AppImage has a newer build.
+httpdate = "1"
 # Debian's AppStream metadata (DEP-11) is stored gzip-compressed YAML.
 flate2 = "1"
 serde_yaml = "0.9"

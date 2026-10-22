@@ -33,6 +33,12 @@
     }
   }
 
+  // The testing switch follows what the system reports, not what was
+  // clicked: it is set again from the status once the job ends, so it goes
+  // back to where it was when the change fails.
+  let testing = false;
+  $: if (status) testing = status.fwupdTesting;
+
   // Turns the LVFS testing channel on or off and reads the status again.
   async function toggleTesting() {
     if (!status) return;
@@ -40,6 +46,7 @@
     if (await runJob($_("jobs.firmwareChannel"), { action, source: "firmware" }, "settings:firmware")) {
       status = await api.sources().catch(() => status);
     }
+    testing = status?.fwupdTesting ?? false;
   }
 
   async function maintenance(request: JobRequest) {
@@ -137,23 +144,27 @@
         </div>
         <div class="settings-desc">{status && !status.fwupd ? $_("settings.firmwareMissing") : $_("settings.firmwareDesc")}</div>
       </div>
-      {#if status && !status.fwupd}
-        <button class={primaryClass} disabled={busyWith("fwupd")} on:click={() => installPackage("fwupd", "fwupd")}>
-          {busyWith("fwupd") ? $_("common.installing") : $_("settings.installFwupd")}
-        </button>
-      {/if}
-    </div>
-    {#if status?.fwupd}
-      <div class="settings-row">
-        <div>
-          <div class="settings-label">{$_("settings.firmwareTesting")}</div>
-          <div class="settings-desc">{$_("settings.firmwareTestingDesc")}</div>
-        </div>
-        <button class={ghostClass} disabled={busyWith("firmware")} on:click={toggleTesting}>
-          {status.fwupdTesting ? $_("settings.disable") : $_("settings.enable")}
-        </button>
+      <div class="flex items-center gap-3">
+        {#if status && !status.fwupd}
+          <button class={primaryClass} disabled={busyWith("fwupd")} on:click={() => installPackage("fwupd", "fwupd")}>
+            {busyWith("fwupd") ? $_("common.installing") : $_("settings.installFwupd")}
+          </button>
+        {/if}
+        <Toggle bind:checked={$settings.firmwareUpdates} label={$_("settings.firmwareUpdates")} disabled={!status?.fwupd} />
       </div>
-    {/if}
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">{$_("settings.firmwareTesting")}</div>
+        <div class="settings-desc">{$_("settings.firmwareTestingDesc")}</div>
+      </div>
+      <Toggle
+        bind:checked={testing}
+        label={$_("settings.firmwareTesting")}
+        disabled={!status?.fwupd || !$settings.firmwareUpdates || busyWith("firmware")}
+        on:change={toggleTesting}
+      />
+    </div>
     <div class="settings-row">
       <div>
         <div class="settings-label">
@@ -173,17 +184,6 @@
       {:else}
         <button class={ghostClass} on:click={() => launch("soplos-appimage-manager", "Soplos AppImage Manager")}>{$_("common.open")}</button>
       {/if}
-    </div>
-    <div class="settings-row">
-      <div>
-        <div class="settings-label">{$_("settings.preferred")}</div>
-        <div class="settings-desc">{$_("settings.preferredDesc")}</div>
-      </div>
-      <select class={selectClass} bind:value={$settings.preferredSource}>
-        <option value="apt">{$_("settings.prefApt")}</option>
-        <option value="flatpak">{$_("settings.prefFlathub")}</option>
-        <option value="ask">{$_("settings.prefAsk")}</option>
-      </select>
     </div>
     <div class="settings-row">
       <div>

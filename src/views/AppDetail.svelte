@@ -1,12 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { get } from "svelte/store";
   import { fade } from "svelte/transition";
   import { _ } from "svelte-i18n";
   import { ChevronLeft, ChevronRight, ExternalLink, Star } from "lucide-svelte";
   import { api, type AppDetail } from "../lib/api";
   import { resolveImage } from "../lib/images";
-  import { settings } from "../lib/settings";
   import BackButton from "../components/BackButton.svelte";
   import AppIcon from "../components/AppIcon.svelte";
   import InstallButton from "../components/InstallButton.svelte";
@@ -50,10 +48,10 @@
     loaded = true;
     if (detail) {
       // Start on a source the app is already installed from, otherwise on
-      // the preferred source chosen in Settings.
+      // the first one (APT, the system's own source); the user picks another
+      // one here before installing.
       const installedIndex = detail.sources.findIndex((s) => s.installed);
-      const preferredIndex = detail.sources.findIndex((s) => s.kind === get(settings).preferredSource);
-      selected = installedIndex >= 0 ? installedIndex : Math.max(preferredIndex, 0);
+      selected = Math.max(installedIndex, 0);
       shots = await Promise.all(detail.screenshots.map(resolveImage));
     }
   });

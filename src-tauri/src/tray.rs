@@ -108,7 +108,8 @@ fn open_updates() {
 fn current_count(interval: Duration, force: bool) -> usize {
     match checker::read() {
         Some(stored) if !force && checker::age().is_some_and(|age| age < interval) => stored.count,
-        _ => checker::check_and_store(),
+        // "Check now" of the menu always refreshes the lists first.
+        _ => checker::refresh_and_check(if force { Duration::ZERO } else { interval }),
     }
 }
 

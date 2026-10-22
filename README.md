@@ -1,11 +1,15 @@
 # Soplos Store 3.0
 
-[![License: GPL-3.0+](https://img.shields.io/badge/License-GPL--3.0%2B-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Version](https://img.shields.io/badge/version-3.0.0--2--beta-green.svg)]()
+![Version](https://img.shields.io/badge/version-3.0.0--5--beta-blue)
+![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green)
+![Platform](https://img.shields.io/badge/platform-Linux-lightgrey)
+![Tauri](https://img.shields.io/badge/Tauri-2-orange)
+![Rust](https://img.shields.io/badge/Rust-1.80+-orange)
+![Svelte](https://img.shields.io/badge/Svelte-4-red)
 
 Software store for Soplos Linux.
 
-It finds, installs, updates and removes applications from APT, Flatpak and Snap in one place. What it shows comes from public databases, not from a list of its own: Debian's AppStream metadata, Flathub and the Snap Store, with ratings from ODRS.
+It finds, installs, updates and removes applications from APT, Flatpak, Snap and AppImages in one place, and applies firmware updates through fwupd. What it shows comes from public databases, not from a list of its own: Debian's AppStream metadata, Flathub and the Snap Store, with ratings from ODRS.
 
 ## Screenshots
 
@@ -26,13 +30,20 @@ Tauri 2 with a Rust backend and a Svelte 4 + Tailwind CSS frontend, rendered thr
 - **Privileges:** the window never runs as root. APT operations run through `pkexec` with two Polkit actions: `--privileged-refresh` for passwordless repository synchronization (`allow_active: yes`), and `--privileged <action>` for package changes (install, remove, upgrade), which prompts for administrator authentication and validates every package name. Commands are always built as argument lists, never as a shell string.
 - **Cache:** `~/.cache/soplos-store/`. The app shows the last saved data when there is no network.
 
+## Installation
+
+```bash
+sudo apt install soplos-store
+```
+
 ## Sections
 
 - **Explore:** a carousel of highlighted apps per section and the other apps below it, and a search across Debian, Flathub and Snap.
 - **Categories:** each category has its own page with a carousel, a source filter and sorting.
 - **Installed:** what is installed from APT, Flatpak, Snap and AppImages, with multi-selection for bulk removal and unified suite views (e.g. LibreOffice).
 - **Updates:** pending updates, one by one or all at once, with a permanent toolbar, select-all control, and real-time status.
-- **Settings:** software sources, install scope, preferred source, update checks, recommendations and maintenance.
+- **Drivers:** your graphics cards, each with the driver that fits it and its state, and the NVIDIA driver branches (550 from Debian, 580, 590 and 610 from NVIDIA's CUDA repository, and the legacy 470, 390 and 340 ones) as cards you install or remove with one confirmation. The installers carry the patches kernels 7.x need. AMD and Intel cards get their Mesa and firmware packages, and a hero that moves through every brand also offers the guest tools of VMware, QEMU/KVM and Proxmox, Virt-Manager and GNOME Boxes.
+- **Settings:** software sources (with a switch for firmware updates and one for the firmware testing channel), install scope, update checks, recommendations and maintenance.
 
 An app available from several sources appears once, with a selector on its page to choose where to install it. Flatpak and Snap only appear as sources when they are installed.
 
@@ -56,6 +67,24 @@ The desktop entry registers the app for `.deb`, `.flatpak`, `.flatpakref`, `.sna
 | F5, Ctrl+R | Reload |
 | Ctrl+F | Search |
 | Escape, Alt+Left | Back |
+
+## Documentation
+
+A Unix manual page is included and installed with the package:
+
+```bash
+man soplos-store
+```
+
+Command line:
+
+| Command | Action |
+|---|---|
+| `soplos-store` | Open the app |
+| `soplos-store FILE` | Inspect and install a `.deb`, `.flatpak`, `.flatpakref`, `.snap` or `.AppImage` file |
+| `soplos-store --updates` | Open directly on Updates |
+| `soplos-store --tray` | Run as the update notifier, with no window |
+| `soplos-store --check-updates` | Check for updates once and refresh the cache (used by the systemd timer) |
 
 ## Languages
 

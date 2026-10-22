@@ -4,7 +4,6 @@
   import { resolveImage } from "../lib/images";
   import AppIcon from "./AppIcon.svelte";
   import SourceTags from "./SourceTags.svelte";
-  import InstallButton from "./InstallButton.svelte";
 
   // Shows one highlighted app at a time, with its screenshot as the
   // background, and moves to the next one every few seconds.
@@ -60,7 +59,6 @@
             <div class="text-[2rem] font-bold text-white mt-0.5 truncate">{app.name}</div>
             <p class="text-[1rem] text-white/85 mt-1.5 line-clamp-3">{app.summary}</p>
             <div class="mt-2.5"><SourceTags sources={app.sources} /></div>
-            <div class="mt-3"><InstallButton appId={app.id} name={app.name} refs={app.refs} /></div>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// One app as shown in tiles, carousels and search results. The same app
 /// found in several sources (APT, Flatpak, Snap) is merged into one card.
@@ -105,7 +105,7 @@ pub struct InstalledApp {
     pub size: String,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateItem {
     pub id: String,
@@ -114,6 +114,15 @@ pub struct UpdateItem {
     pub source: String,
     pub from: String,
     pub to: String,
+}
+
+/// What the Updates page shows: the updates found by the last check and
+/// when that check was made (seconds since the Unix epoch).
+#[derive(Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdatesView {
+    pub items: Vec<UpdateItem>,
+    pub checked_at: u64,
 }
 
 #[derive(Serialize, Clone)]

@@ -5,7 +5,6 @@ import { invoke } from "@tauri-apps/api/core";
 // install backend read them once those parts exist.
 export interface Settings {
   flatpakScope: "user" | "system" | "ask";
-  preferredSource: "apt" | "flatpak" | "ask";
   showAllPackages: boolean;
   autoCheck: boolean;
   frequency: "6h" | "12h" | "daily" | "weekly";
@@ -14,11 +13,12 @@ export interface Settings {
   featured: boolean;
   ratings: boolean;
   proprietary: boolean;
+  // Look for firmware updates (fwupd) at all; off when the LVFS is down.
+  firmwareUpdates: boolean;
 }
 
 const DEFAULTS: Settings = {
   flatpakScope: "user",
-  preferredSource: "apt",
   showAllPackages: false,
   autoCheck: true,
   frequency: "daily",
@@ -27,6 +27,7 @@ const DEFAULTS: Settings = {
   featured: true,
   ratings: true,
   proprietary: true,
+  firmwareUpdates: true,
 };
 
 const STORAGE_KEY = "soplos-store-settings";

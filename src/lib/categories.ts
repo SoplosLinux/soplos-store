@@ -16,16 +16,17 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   utility: ["Archiving", "TextEditor", "Calculator", "Clock", "Accessibility"],
 };
 
-// Flathub category IDs, in the order they are shown.
-export const CATEGORIES: { id: string; icon: ComponentType; background: string }[] = [
-  { id: "audiovideo", icon: Film, background: "linear-gradient(135deg, #ea580c, #9a3412)" },
-  { id: "development", icon: Code, background: "linear-gradient(135deg, #0369a1, #0c4a6e)" },
-  { id: "education", icon: GraduationCap, background: "linear-gradient(135deg, #b45309, #78350f)" },
-  { id: "game", icon: Gamepad2, background: "linear-gradient(135deg, #0f766e, #134e4a)" },
-  { id: "graphics", icon: Palette, background: "linear-gradient(135deg, #7e22ce, #4c1d95)" },
-  { id: "network", icon: Globe, background: "linear-gradient(135deg, #1d4ed8, #1e3a8a)" },
-  { id: "office", icon: FileText, background: "linear-gradient(135deg, #be123c, #881337)" },
-  { id: "science", icon: FlaskConical, background: "linear-gradient(135deg, #4d7c0f, #365314)" },
-  { id: "system", icon: Monitor, background: "linear-gradient(135deg, #475569, #1e293b)" },
-  { id: "utility", icon: Wrench, background: "linear-gradient(135deg, #c2410c, #7c2d12)" },
+// Flathub category IDs, in the order they are shown, each with the color
+// ("r g b") of its card.
+export const CATEGORIES: { id: string; icon: ComponentType; color: string }[] = [
+  { id: "audiovideo", icon: Film, color: "249 115 22" },
+  { id: "development", icon: Code, color: "14 165 233" },
+  { id: "education", icon: GraduationCap, color: "245 158 11" },
+  { id: "game", icon: Gamepad2, color: "20 184 166" },
+  { id: "graphics", icon: Palette, color: "168 85 247" },
+  { id: "network", icon: Globe, color: "59 130 246" },
+  { id: "office", icon: FileText, color: "244 63 94" },
+  { id: "science", icon: FlaskConical, color: "132 204 22" },
+  { id: "system", icon: Monitor, color: "148 163 184" },
+  { id: "utility", icon: Wrench, color: "251 146 60" },
 ];

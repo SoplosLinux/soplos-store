@@ -27,6 +27,61 @@ pub fn get(url: &str, headers: &[(&str, &str)]) -> Option<Vec<u8>> {
     response.body_mut().with_config().limit(MAX_BODY).read_to_vec().ok()
 }
 
+/// Answer to a HEAD request: the Last-Modified date, when the server gives
+/// one.
+pub struct Head {
+    pub last_modified: Option<String>,
+}
+
+pub fn head(url: &str, headers: &[(&str, &str)]) -> Option<Head> {
+    let mut request = agent().head(url);
+    for (name, value) in headers {
+        request = request.header(*name, *value);
+    }
+    let response = request.call().ok()?;
+    let last_modified = response.headers().get("Last-Modified").and_then(|v| v.to_str().ok()).map(str::to_string);
+    Some(Head { last_modified })
+}
+
+/// Downloads a file to `dest`, a piece at a time: an AppImage can be
+/// hundreds of megabytes, so it is neither held in memory nor cut by a
+/// size limit. Only connecting and waiting for the answer have a time
+/// limit, so a server that does not answer cannot hold the job for good.
+/// `progress` is called with the bytes written so far and the total size
+/// when the server tells it.
+pub fn download(url: &str, dest: &std::path::Path, headers: &[(&str, &str)], mut progress: impl FnMut(u64, Option<u64>)) -> Result<(), String> {
+    use std::io::{Read, Write};
+
+    static AGENT: OnceLock<ureq::Agent> = OnceLock::new();
+    let agent = AGENT.get_or_init(|| {
+        ureq::Agent::config_builder()
+            .timeout_connect(Some(Duration::from_secs(15)))
+            .timeout_recv_response(Some(Duration::from_secs(30)))
+            .build()
+            .into()
+    });
+    let mut request = agent.get(url);
+    for (name, value) in headers {
+        request = request.header(*name, *value);
+    }
+    let mut response = request.call().map_err(|e| e.to_string())?;
+    let total = response.headers().get("Content-Length").and_then(|v| v.to_str().ok()).and_then(|v| v.parse().ok());
+    let mut reader = response.body_mut().as_reader();
+    let mut file = std::fs::File::create(dest).map_err(|e| e.to_string())?;
+    let mut buffer = vec![0u8; 64 * 1024];
+    let mut done = 0u64;
+    loop {
+        let read = reader.read(&mut buffer).map_err(|e| e.to_string())?;
+        if read == 0 {
+            break;
+        }
+        file.write_all(&buffer[..read]).map_err(|e| e.to_string())?;
+        done += read as u64;
+        progress(done, total);
+    }
+    file.flush().map_err(|e| e.to_string())
+}
+
 pub fn post_json(url: &str, body: &serde_json::Value) -> Option<serde_json::Value> {
     let bytes = serde_json::to_vec(body).ok()?;
     let mut response = agent()

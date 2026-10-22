@@ -1,7 +1,7 @@
 {
   "name": "soplos-store",
   "private": true,
-  "version": "3.0.0-3-beta",
+  "version": "3.0.0-5-beta",
   "type": "module",
   "scripts": {
     "dev": "vite",

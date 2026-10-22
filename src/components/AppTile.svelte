@@ -3,7 +3,6 @@
   import AppIcon from "./AppIcon.svelte";
   import SourceTags from "./SourceTags.svelte";
   import Rating from "./Rating.svelte";
-  import InstallButton from "./InstallButton.svelte";
 
   export let app: AppCard;
   export let onOpen: (id: string) => void;
@@ -24,8 +23,9 @@
     </div>
   </div>
   <p class="text-[0.78rem] text-text line-clamp-2 min-h-[2.2em]">{app.summary}</p>
+  <!-- The card only opens the app page: installing is done there, where the
+       description, the screenshots and the source can be chosen. -->
   <div class="flex items-center justify-between gap-2 mt-auto">
     <SourceTags sources={app.sources} />
-    <InstallButton appId={app.id} name={app.name} refs={app.refs} />
   </div>
 </div>

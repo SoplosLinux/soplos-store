@@ -82,6 +82,45 @@ export interface UpdateItem {
   to: string;
 }
 
+/** A graphics card of this machine and the driver that fits it. */
+export interface GpuInfo {
+  /** "NVIDIA", "AMD", "Intel" or "Virtual". */
+  vendor: string;
+  model: string;
+  /** "Dedicated", "Integrated", "Dedicated/Integrated" or "Virtual". */
+  gpuType: string;
+  /** For NVIDIA a branch ("nvidia-driver-610", "nouveau"...), for AMD and Intel the packages, space separated. */
+  recommendedDriver: string | null;
+  driverStatus: "installed" | "different_version" | "partial" | "missing";
+  installedDriverVersion: string | null;
+}
+
+/** Whether an NVIDIA driver branch is the one installed. */
+export interface NvidiaBranch {
+  id: string;
+  installed: boolean;
+}
+
+/** A printer plugged in by USB; `brand` is empty when it is not one of the brands of the page. */
+export interface PrinterInfo {
+  brand: string;
+  vendor: string;
+  model: string;
+}
+
+/** The Debian packages of one brand and whether all of them are installed. */
+export interface PackageSet {
+  id: string;
+  packages: string[];
+  installed: boolean;
+}
+
+/** The updates of the last check and when it was made (epoch seconds). */
+export interface UpdatesView {
+  items: UpdateItem[];
+  checkedAt: number;
+}
+
 export interface SourcesStatus {
   flatpak: boolean;
   flathub: string;
@@ -109,7 +148,16 @@ export const api = {
   search: (query: string) => track(invoke<AppCard[]>("search_apps", { query })),
   detail: (id: string) => track(invoke<AppDetail | null>("get_app_detail", { id })),
   installed: () => track(invoke<InstalledApp[]>("get_installed")),
-  updates: () => track(invoke<UpdateItem[]>("get_updates")),
+  /** The result of the last check, instantly (it only looks again when there is none). */
+  updates: () => track(invoke<UpdatesView>("get_updates")),
+  /** Looks in every source again, without "apt update", and keeps the result. */
+  rescanUpdates: () => track(invoke<UpdatesView>("rescan_updates")),
+  gpus: () => track(invoke<GpuInfo[]>("get_gpus")),
+  nvidiaBranches: () => track(invoke<NvidiaBranch[]>("get_nvidia_branches")),
+  driverPackages: () => track(invoke<PackageSet[]>("get_driver_packages")),
+  printers: () => track(invoke<PrinterInfo[]>("get_printers")),
+  printerPackages: () => track(invoke<PackageSet[]>("get_printer_packages")),
+  packageSets: (sets: { id: string; packages: string[] }[]) => track(invoke<PackageSet[]>("get_package_sets", { sets })),
   sources: () => invoke<SourcesStatus | null>("get_sources_status"),
   aptStatus: () => invoke<{ listsAgeSecs: number | null; appCount: number } | null>("get_apt_status"),
   environment: () => invoke<{ desktop: string; session: string }>("get_environment_info"),

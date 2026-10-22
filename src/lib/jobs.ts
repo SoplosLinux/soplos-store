@@ -21,8 +21,8 @@ export type JobAction =
 
 export interface JobRequest {
   action: JobAction;
-  /** "all" for a job over every installed source ("check"). */
-  source: SourceKind | "all";
+  /** "all" for a job over every installed source ("check"), "driver" for the Drivers page. */
+  source: SourceKind | "all" | "driver";
   ids?: string[];
   scope?: "user" | "system";
   file?: string;
@@ -114,7 +114,9 @@ export async function runJob(title: string, request: JobRequest, key?: string): 
  */
 export async function refreshLists(): Promise<boolean> {
   const ok = await runJob(get(_)("updates.refreshing"), { action: "check", source: "all" }, "refresh-lists");
-  if (ok) await invoke("reload_apt");
+  // Debian's metadata is read again in the background: the page does not
+  // wait for it, it only needs it for the names of apps it has not seen.
+  if (ok) void invoke("reload_apt");
   return ok;
 }
 

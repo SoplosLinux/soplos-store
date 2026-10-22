@@ -4,6 +4,7 @@
     "categories": "Categories",
     "installed": "Installed",
     "updates": "Updates",
+    "drivers": "Drivers",
     "settings": "Settings"
   },
   "sidebar": {
@@ -235,6 +236,111 @@
     "quit": "Quit",
     "available": "{n} updates available"
   },
+  "drivers": {
+    "detecting": "Detecting your graphics card...",
+    "none": "No graphics card was detected.",
+    "yourGpu": "Your graphics card",
+    "recommended": "Recommended",
+    "install": "Install",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "installMissing": "Install the missing drivers",
+    "installing": "Installing {name}",
+    "removingNvidia": "Removing the NVIDIA driver",
+    "status": { "installed": "Installed", "different": "Another version", "partial": "Incomplete", "missing": "Not installed" },
+    "type": { "dedicated": "Dedicated", "integrated": "Integrated", "both": "Dedicated or integrated", "virtual": "Virtual" },
+    "hero": {
+      "recommended": "The driver that fits this card: {name}.",
+      "nouveau": "This card works best with Nouveau, the open-source driver that comes with the kernel.",
+      "packagesReady": "The drivers for this card are installed.",
+      "packagesMissing": "Some of the drivers for this card are missing.",
+      "virtual": "This is a virtual graphics adapter: there is nothing to install here."
+    },
+    "nvidia": {
+      "title": "NVIDIA drivers",
+      "subtitle": "Choose the branch that fits your card. Installing one replaces any other NVIDIA driver. Without an NVIDIA driver the system uses Nouveau.",
+      "removeAll": "Remove NVIDIA and go back to Nouveau",
+      "confirmInstall": "Any NVIDIA driver already installed is removed first, the module is built for your kernels and a restart is needed afterwards.",
+      "confirmRemove": "All NVIDIA and CUDA packages are removed and Nouveau takes over after a restart.",
+      "needsTuring": "Needs a Turing or newer card (GTX 16xx, RTX).",
+      "noCard": "No NVIDIA card was detected."
+    },
+    "removing": "Removing {name}",
+    "printers": {
+      "yours": "Your printer",
+      "noteDebian": "Open source drivers from the maker or the community, from Debian.",
+      "noteOfficial": "Its drivers are per model: they are downloaded from the official website of the maker.",
+      "official": "Official {name} drivers",
+      "officialHint": "Download the driver of your model from the official page of the maker.",
+      "open": "Open the official website",
+      "sections": { "base": "Printing system", "others": "Other makers", "makers": "Makers", "tools": "Tools" },
+      "cards": {
+        "cups": { "title": "Printing system (CUPS)", "hint": "CUPS, filters, driverless printing over USB and the printer settings tool." },
+        "pdf": { "title": "Print to PDF", "hint": "A virtual printer that saves any document as a PDF." },
+        "gutenprint": { "title": "Gutenprint", "hint": "Free drivers for many inkjet and laser printers of several makers." },
+        "hp": { "title": "HP drivers (HPLIP)", "hint": "HPLIP with a graphical interface and PostScript. If your model asks for the proprietary plugin, it is added from HP Device Manager." },
+        "brother": { "title": "Brother drivers", "hint": "The free brlaser driver for many Brother laser printers." },
+        "epson": { "title": "Epson drivers (ESC/P-R)", "hint": "Epson's driver for its inkjet printers." },
+        "xerox": { "title": "Drivers for Xerox", "hint": "The fujixerox and foo2zjs drivers, for Xerox, Fuji Xerox and other compatible models." },
+        "ricoh": { "title": "Ricoh drivers", "hint": "Driver for Ricoh Aficio printers of the SP 1000 and 1100 series." },
+        "oki": { "title": "OKI drivers", "hint": "Driver for OKI printers that use the maker's own protocol." },
+        "samsung": { "title": "Samsung drivers (SpliX)", "hint": "The SpliX driver for Samsung and Xerox lasers based on SPL." }
+      }
+    },
+    "soon":"Coming soon",
+    "back": "All drivers",
+    "cat": {
+      "graphics": "Graphics", "printers": "Printers", "scanners": "Scanners", "tablets": "Graphics tablets", "labels": "Labels and receipts",
+      "capture": "Capture cards", "gaming": "Gaming peripherals", "wireless": "Wi-Fi and Bluetooth", "laptops": "Laptops and vendors", "audio": "Pro audio",
+      "network": "Network", "security": "Fingerprint and security", "ups": "UPS", "rgb": "RGB and cooling", "virtual": "Virtual machines"
+    },
+    "vendors": {
+      "kicker": "Drivers and tools",
+      "yours": "Your computer",
+      "nvidia": { "name": "NVIDIA", "note": "Proprietary drivers with CUDA for GeForce and RTX cards." },
+      "amd": { "name": "AMD", "note": "Mesa and Vulkan for Radeon, with video acceleration and OpenCL." },
+      "intel": { "name": "Intel", "note": "Mesa, Vulkan and video acceleration for Intel Graphics and Arc." },
+      "vmware": { "name": "VMware", "note": "Guest tools: clipboard, shared folders and display." },
+      "virtualbox": { "name": "VirtualBox", "note": "The Guest Additions come from VirtualBox itself, not from Debian." },
+      "qemu": { "name": "QEMU / KVM", "note": "Agent and SPICE for the clipboard and resolution of the guest." },
+      "virtmanager": { "name": "Virt-Manager", "note": "Graphical manager for virtual machines with KVM and libvirt." },
+      "boxes": { "name": "GNOME Boxes", "note": "Simple virtual machines, with nothing to set up." },
+      "proxmox": { "name": "Proxmox", "note": "The QEMU agent for guests running on Proxmox VE." }
+    },
+    "pack": {
+      "amd": { "title": "AMD drivers", "hint": "Mesa, Vulkan, OpenCL and video acceleration for Radeon." },
+      "intel": { "title": "Intel drivers", "hint": "Mesa, Vulkan and video acceleration for Intel." },
+      "vmware": { "title": "VMware tools", "hint": "open-vm-tools and its desktop part." },
+      "virtualbox": { "title": "Guest Additions", "hint": "Provided by VirtualBox.", "blocked": "Debian does not ship these tools. With the machine running, use Devices → Insert Guest Additions CD image." },
+      "qemu": { "title": "QEMU agent and SPICE", "hint": "Shared clipboard and automatic resolution in the guest." },
+      "virtmanager": { "title": "Virt-Manager", "hint": "Includes QEMU and the libvirt service." },
+      "boxes": { "title": "GNOME Boxes", "hint": "Create and use virtual machines in a few clicks." },
+      "vendorConfirm": "The official repository of the maker is added, the packages are installed and the repository is removed again. It can download several GB.",
+      "amd-rocm": { "title": "ROCm: runtime and OpenCL", "hint": "To run compute on the GPU: OpenCL, HIP and rocminfo." },
+      "amd-hip": { "title": "ROCm: HIP development", "hint": "The hipcc compiler and headers to program the AMD GPU." },
+      "amd-math": { "title": "ROCm: math libraries", "hint": "rocBLAS, rocFFT, rocSPARSE, rocSOLVER and hipBLAS." },
+      "amd-tools": { "title": "AMD tools", "hint": "radeontop, nvtop, Vulkan and clinfo to see what the card is doing." },
+      "intel-compute": { "title": "Intel: OpenCL and Level Zero", "hint": "Compute on the Intel card with OpenCL and Level Zero." },
+      "intel-media": { "title": "Intel: video with oneVPL", "hint": "oneVPL and vainfo to encode and decode video in hardware." },
+      "intel-tools": { "title": "Intel tools", "hint": "intel-gpu-tools, nvtop and Vulkan to see what the card is doing." },
+      "oneapi-dpcpp": { "title": "oneAPI: DPC++ compiler", "hint": "Intel compiler for CPU and GPU with SYCL. From the official Intel repository." },
+      "oneapi-mkl": { "title": "oneAPI: Math Kernel Library", "hint": "Intel math libraries, such as BLAS and FFT. From the official Intel repository." },
+      "oneapi-vtune": { "title": "oneAPI: VTune Profiler", "hint": "Intel performance profiler. From the official Intel repository." },
+      "oneapi-base": { "title": "oneAPI Base Toolkit", "hint": "The complete Intel set: it takes several GB. From the official Intel repository." },
+      "cuda-toolkit": { "title": "CUDA Toolkit", "hint": "nvcc and the CUDA libraries to program the NVIDIA GPU. From the official NVIDIA repository." },
+      "proxmox": { "title": "QEMU agent for Proxmox", "hint": "Lets Proxmox shut the guest down and read its network." }
+    },
+    "branch": {
+      "610": { "label": "NVIDIA 610 (Latest)", "hint": "Blackwell and newer: RTX 50/60 series" },
+      "590": { "label": "NVIDIA 590 (Stable)", "hint": "Turing and newer: GTX 16xx, RTX 20/30/40/50" },
+      "580": { "label": "NVIDIA 580 (Production)", "hint": "Maxwell to Blackwell (GTX 900 → RTX 5000)" },
+      "nvidia-driver": { "label": "NVIDIA 550 (Repo)", "hint": "Maxwell to Ada Lovelace" },
+      "nvidia-tesla-470-driver": { "label": "NVIDIA 470 (Legacy)", "hint": "Kepler to Ampere — needs Debian Sid enabled" },
+      "nvidia-legacy-390xx-driver": { "label": "NVIDIA 390 (Legacy)", "hint": "Fermi and Kepler — needs Debian Sid enabled" },
+      "nvidia-legacy-340xx-driver": { "label": "NVIDIA 340 (Legacy)", "hint": "Tesla architecture — needs Debian Sid enabled" }
+    }
+  },
   "checklog": {
     "apt": "APT: updating the package lists...",
     "snap": "Snap: checking for updates...",
@@ -243,7 +349,11 @@
     "found": "{n} updates available",
     "none": "everything is up to date",
     "doneSome": "Finished: {n} updates available",
-    "doneNone": "Finished: everything is up to date"
+    "doneNone": "Finished: everything is up to date",
+    "timedOut": "It took too long and was stopped: the server may be unreachable.",
+    "appimage": "AppImage: checking for updates...",
+    "appimageDownloading": "AppImage: downloading the new version...",
+    "appimageHint": "{n} AppImages have no version or update address and were skipped. Add them in AppImage Manager."
   },
   "settings": {
     "sources": "Software sources",
@@ -265,6 +375,7 @@
     "firmwareDesc": "Updates for the BIOS and devices of this computer, from the LVFS through fwupd.",
     "firmwareMissing": "fwupd is not installed.",
     "installFwupd": "Install fwupd",
+    "firmwareUpdates": "Firmware updates",
     "firmwareTesting": "Firmware testing channel",
     "firmwareTestingDesc": "Newer firmware that is still being tested. It may cause problems.",
     "enable": "Enable",
@@ -273,11 +384,6 @@
     "notInstalled": "Not installed",
     "appimage": "AppImage",
     "appimageDesc": "Managed with Soplos AppImage Manager.",
-    "preferred": "Preferred source",
-    "preferredDesc": "Used when an app is available from several sources.",
-    "prefApt": "Debian (APT)",
-    "prefFlathub": "Flathub",
-    "prefAsk": "Ask on each app",
     "allPackages": "Show all packages",
     "allPackagesDesc": "Not only apps: libraries and command line tools too.",
     "checks": "Update checks",

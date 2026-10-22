@@ -31,6 +31,12 @@ pub fn fwupd_device_id(id: &str) -> bool {
     id.len() == 40 && id.chars().all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c))
 }
 
+/// Name of an AppImage inside ~/AppImages: a bare file name, hidden files
+/// excluded.
+pub fn appimage_file(name: &str) -> bool {
+    !name.is_empty() && !name.starts_with('.') && !name.contains('/') && name.to_lowercase().ends_with(".appimage")
+}
+
 /// An existing absolute path to a file with one of the given extensions.
 pub fn package_file(path: &str, extensions: &[&str]) -> bool {
     let file = Path::new(path);

@@ -1,4 +1,5 @@
 mod appimage;
+mod appimage_update;
 mod apt;
 mod cache;
 mod catalog;
@@ -7,13 +8,16 @@ mod checker;
 mod flathub;
 mod flatpak;
 mod fwupd;
+mod gpu;
 mod http;
 mod i18n;
 mod images;
 mod jobs;
 mod launcher;
 mod models;
+mod nvidia;
 mod odrs;
+mod printers;
 mod privileged;
 mod settings;
 mod snap;
@@ -21,6 +25,7 @@ mod system;
 mod text;
 mod tray;
 mod validate;
+mod vendor;
 
 /// Entry point for `--privileged <action> <args>`, run as root through
 /// pkexec. Returns the exit code.
@@ -109,6 +114,13 @@ pub fn run() {
             catalog::get_app_detail,
             catalog::get_installed,
             catalog::get_updates,
+            catalog::rescan_updates,
+            gpu::get_gpus,
+            gpu::get_nvidia_branches,
+            gpu::get_driver_packages,
+            printers::get_printers,
+            printers::get_printer_packages,
+            printers::get_package_sets,
             catalog::get_sources_status,
             images::fetch_image,
             launcher::launch_app,

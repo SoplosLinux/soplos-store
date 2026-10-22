@@ -1,12 +1,11 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
   import type { SourceKind, SourceOption } from "../lib/api";
-  import { settings } from "../lib/settings";
   import { jobs, overrides, runJob, chooseScope } from "../lib/jobs";
 
-  // Installs or removes one app. Without `selected` (tiles, carousel) it
-  // removes from the source it is installed from, or installs from the
-  // preferred source in Settings; the app page passes its chosen source.
+  // Installs or removes one app. The app page passes the source the user
+  // chose; without one it works on the source the app is installed from,
+  // or on the first source of the list (APT).
   export let appId: string;
   export let name: string;
   export let refs: SourceOption[];
@@ -17,7 +16,7 @@
   $: isInstalled = (ref: SourceOption) => $overrides[`${appId}:${ref.kind}`] ?? ref.installed;
   $: target = selected
     ? refs.find((r) => r.kind === selected)
-    : (refs.find((r) => isInstalled(r)) ?? refs.find((r) => r.kind === $settings.preferredSource) ?? refs[0]);
+    : (refs.find((r) => isInstalled(r)) ?? refs[0]);
   $: installed = target ? isInstalled(target) : false;
   $: running = $jobs.some((j) => j.key === appId && j.status === "running");
 

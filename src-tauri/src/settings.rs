@@ -14,11 +14,14 @@ pub struct Settings {
     pub auto_check: bool,
     pub frequency: String,
     pub notify: bool,
+    /// Whether firmware (fwupd) updates are looked for at all. Turned off
+    /// when the LVFS is unreachable and its answers hold the checks up.
+    pub firmware_updates: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { auto_check: true, frequency: "daily".into(), notify: true }
+        Settings { auto_check: true, frequency: "daily".into(), notify: true, firmware_updates: true }
     }
 }
 
@@ -47,6 +50,11 @@ pub fn load() -> Settings {
         .and_then(|p| std::fs::read(p).ok())
         .and_then(|data| serde_json::from_slice(&data).ok())
         .unwrap_or_default()
+}
+
+/// Whether firmware updates are turned on in Settings (the default).
+pub fn firmware_enabled() -> bool {
+    load().firmware_updates
 }
 
 fn user_config_dir() -> Option<PathBuf> {

@@ -7,7 +7,7 @@
 
 use std::process::Command;
 
-use crate::validate;
+use crate::{nvidia, validate, vendor};
 
 /// Entry point for `--privileged-refresh`, run as root through pkexec with
 /// allow_active=yes. Exclusively runs `apt-get update` with no package arguments.
@@ -62,6 +62,20 @@ pub fn run(args: &[String]) -> i32 {
         eprintln!("soplos-store: missing privileged action");
         return 2;
     };
+    // Driver actions run a script that is built into this binary. The only
+    // thing the caller chooses is the branch or package, and it is accepted
+    // only when it is in the closed list of nvidia.rs; any other value
+    // falls through to "invalid privileged action" below.
+    let script = match action.as_str() {
+        "nvidia-install-repo" if rest.len() == 1 => nvidia::repo_script(&rest[0]).ok(),
+        "nvidia-install-cuda" if rest.len() == 1 => nvidia::cuda_script(&rest[0]).ok(),
+        "nvidia-remove" if rest.is_empty() => Some(nvidia::uninstall_script()),
+        "vendor-install" if rest.len() == 1 => vendor::install_script(&rest[0]).ok(),
+        _ => None,
+    };
+    if let Some(script) = script {
+        return run_script(&script, lang, locale);
+    }
     let all_packages = !rest.is_empty() && rest.iter().all(|p| validate::apt_package(p));
     let apt_args: Vec<String> = match action.as_str() {
         // --no-remove: an install or upgrade never removes other packages
@@ -101,6 +115,51 @@ pub fn run(args: &[String]) -> i32 {
     }
 }
 
+/// Runs one of the built-in driver scripts as root, in the language of the app.
+fn run_script(script: &str, lang: Option<&str>, locale: Option<&str>) -> i32 {
+    let mut shell = Command::new("bash");
+    shell.arg("-c").arg(script).env("DEBIAN_FRONTEND", "noninteractive");
+    if let Some(locale) = locale {
+        shell.env("LANG", locale);
+    }
+    if let Some(lang) = lang {
+        shell.env("LANGUAGE", format!("{lang}:en"));
+    }
+    match shell.status() {
+        Ok(status) => status.code().unwrap_or(1),
+        Err(e) => {
+            eprintln!("soplos-store: could not run the driver script: {e}");
+            1
+        }
+    }
+}
+
 fn args_with(fixed: &[&str], rest: &[String]) -> Vec<String> {
     fixed.iter().map(|s| s.to_string()).chain(rest.iter().cloned()).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // None of these may run a script: they only check what the helper
+    // refuses. A valid driver action would start a root script, so it is
+    // never called here.
+    fn refused(args: &[&str]) -> bool {
+        run(&args.iter().map(|s| s.to_string()).collect::<Vec<_>>()) == 2
+    }
+
+    #[test]
+    fn the_helper_refuses_branches_outside_the_closed_lists() {
+        assert!(refused(&["nvidia-install-cuda", "999"]));
+        assert!(refused(&["nvidia-install-cuda", "590; reboot"]));
+        assert!(refused(&["nvidia-install-cuda"]));
+        assert!(refused(&["nvidia-install-repo", "bash"]));
+        assert!(refused(&["nvidia-install-repo", "nvidia-driver", "extra"]));
+        assert!(refused(&["nvidia-remove", "anything"]));
+        assert!(refused(&["vendor-install", "bash"]));
+        assert!(refused(&["vendor-install", "oneapi-mkl; reboot"]));
+        assert!(refused(&["vendor-install"]));
+        assert!(refused(&["run-this-script", "/tmp/x.sh"]));
+    }
 }

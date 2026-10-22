@@ -1,4 +1,4 @@
-.TH "SOPLOS-STORE" "1" "2026-10-19" "Soplos Linux" "User Commands"
+.TH "SOPLOS-STORE" "1" "2026-10-21" "Soplos Linux" "User Commands"
 .SH NAME
 soplos-store \- Modern software center for Soplos Linux
 .SH SYNOPSIS
@@ -19,6 +19,8 @@ Snap packages from the Snap Store.
 Standalone AppImages integrated into ~/AppImages with desktop launchers.
 .IP \[bu]
 System firmware updates via fwupd and LVFS.
+.IP \[bu]
+Graphics drivers on the Drivers page: the graphics cards of the machine and the NVIDIA driver branches (installed from the Debian repositories or NVIDIA's own CUDA repository, with the patches kernels 7.x need), plus the Mesa and firmware packages of AMD and Intel cards.
 .P
 Designed to be lightweight and responsive with Tauri 2, Rust, and modern web technologies,
 offering desktop-agnostic integration across XFCE 4.20, KDE Plasma 6, and GNOME 48+.
@@ -60,6 +62,25 @@ Snap package files.
 .IP \[bu]
 .B .AppImage
 Linux standalone AppImage executables (automatically integrated into ~/AppImages).
+.SH KEYBOARD SHORTCUTS
+.TP
+.B F1
+About dialog.
+.TP
+.B Ctrl+Q
+Quit the application.
+.TP
+.B Ctrl+Tab, Ctrl+Shift+Tab
+Next or previous section.
+.TP
+.B F5, Ctrl+R
+Reload.
+.TP
+.B Ctrl+F
+Search.
+.TP
+.B Escape, Alt+Left
+Back.
 .SH FILES
 .TP
 .I /etc/xdg/autostart/soplos-store-tray.desktop
