@@ -3,6 +3,7 @@
   import { _ } from "svelte-i18n";
   import { api, type SourcesStatus } from "../lib/api";
   import { settings } from "../lib/settings";
+  import { themeChoice } from "../lib/theme";
   import { showToast } from "../lib/toast";
   import { jobs, runJob, type JobRequest } from "../lib/jobs";
   import Toggle from "../components/Toggle.svelte";
@@ -191,6 +192,21 @@
         <div class="settings-desc">{$_("settings.allPackagesDesc")}</div>
       </div>
       <Toggle bind:checked={$settings.showAllPackages} label={$_("settings.allPackages")} />
+    </div>
+  </section>
+
+  <section class="bg-surface border border-border rounded px-4 py-1.5">
+    <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.appearance")}</h3>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">{$_("settings.theme")}</div>
+        <div class="settings-desc">{$_("settings.themeDesc")}</div>
+      </div>
+      <select class={selectClass} title={$_("settings.theme")} bind:value={$themeChoice}>
+        <option value="auto">{$_("settings.themeAuto")}</option>
+        <option value="light">{$_("settings.themeLight")}</option>
+        <option value="dark">{$_("settings.themeDark")}</option>
+      </select>
     </div>
   </section>
 

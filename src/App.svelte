@@ -13,6 +13,7 @@
   import ScopeDialog from "./components/ScopeDialog.svelte";
   import Toast from "./components/Toast.svelte";
   import { initJobs } from "./lib/jobs";
+  import { followSystemTheme } from "./lib/theme";
   import Explore, { clearExploreCache } from "./views/Explore.svelte";
   import Categories from "./views/Categories.svelte";
   import CategoryPage from "./views/CategoryPage.svelte";
@@ -139,6 +140,7 @@
   }
 
   onMount(async () => {
+    followSystemTheme();
     await initJobs();
     unlisten = await listen<string>("open-package", (event) => openPackage(event.payload));
     // The tray icon and its notification open the app on Updates.

@@ -2,6 +2,18 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-7-beta] - 2026-10-23
+
+### Added
+
+- The window follows the light or dark theme of the desktop. A new "Appearance" block in Settings lets the user choose Automatic (the default, which follows the desktop and notices when it changes), Light or Dark, and the button of the sidebar still switches the theme and keeps what it chose. The theme is read from the XDG portal and, when that says nothing, from each desktop: the colors of `kdeglobals` on Plasma, the name of the GTK theme on Xfce (a guess from words such as "dark") and the color scheme of GNOME. It is checked again every few seconds and when the window gets the focus.
+
+### Changed
+
+- The output of the jobs is one log for everything that ran since the strip was last closed, with a header for each job, instead of the log of the last one only: when an update went through APT and then Flatpak, the output of the first was lost. The log has a fixed height of 200 pixels, with its own scroll, instead of a maximum that made it grow with every line.
+- Drivers: Epson, Brother and Canon point to their international pages: Epson to its global support site (the Epson Scan 2 page for scanners and the ESC/P-R 2 page for printers), Brother to its support site, which sends each visitor to their country, and Canon to its global support page.
+- Drivers, graphics tablets: Wacom is one card, with its packages and a link under the description to its official page, instead of two. A card that installs can now carry that link.
+
 ## [3.0.0-6-beta] - 2026-10-23
 
 ### Added

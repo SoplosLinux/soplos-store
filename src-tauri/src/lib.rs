@@ -22,6 +22,7 @@ mod privileged;
 mod settings;
 mod snap;
 mod system;
+mod system_theme;
 mod text;
 mod tray;
 mod validate;
@@ -108,6 +109,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_environment_info,
+            system_theme::get_system_theme,
             catalog::get_explore,
             catalog::get_category,
             catalog::search_apps,

@@ -118,11 +118,11 @@ const maker = (title: string, icon: ComponentType, logo?: string, official: stri
   community,
 });
 
-// Epson's Linux support page, with its drivers, manuals and answers.
-const EPSON_LINUX = "https://epson.co.cr/Support/wa00821";
+// Epson Scan 2, the Linux scanner driver, on Epson's global support site.
+const EPSON_LINUX = "https://support.epson.net/linux/en/epsonscan2.php";
 
-// Brother's page of drivers for Spain.
-const BROTHER_DRIVERS = "https://www.brother.es/soporte/drivers";
+// Brother's support site, which sends each visitor to the page of their country.
+const BROTHER_DRIVERS = "https://support.brother.com/";
 
 const TOOLS = "drivers.printers.sections.tools";
 const MAKERS = "drivers.printers.sections.makers";
@@ -133,7 +133,7 @@ export const PAGES: Record<string, DriverPage> = {
     color: "0 168 140",
     sections: [
       { id: "tools", titleKey: TOOLS, items: [tool("scan-sane", "SANE", ["sane-utils", "sane-airscan", "simple-scan", "xsane"], "SANE", ScanLine, saneLogo, { removable: false })] },
-      { id: "makers", titleKey: MAKERS, items: [maker("Epson", ScanLine, epsonLogo, EPSON_LINUX), maker("Canon", ScanLine, canonLogo, "https://www.canon-europe.com/support/"), maker("Brother", ScanLine, brotherLogo, BROTHER_DRIVERS)] },
+      { id: "makers", titleKey: MAKERS, items: [maker("Epson", ScanLine, epsonLogo, EPSON_LINUX), maker("Canon", ScanLine, canonLogo, "https://global.canon/en/support/"), maker("Brother", ScanLine, brotherLogo, BROTHER_DRIVERS)] },
     ],
   },
   tablets: {
@@ -144,7 +144,7 @@ export const PAGES: Record<string, DriverPage> = {
         id: "tools",
         titleKey: TOOLS,
         items: [
-          tool("tab-wacom", "Wacom", ["xserver-xorg-input-wacom", "libwacom-bin"], "WACOM", PenTool, wacomLogo),
+          tool("tab-wacom", "Wacom", ["xserver-xorg-input-wacom", "libwacom-bin"], "WACOM", PenTool, wacomLogo, { official: "https://support.wacom.com/hc/en-us/articles/1500006331202" }),
           tool("tab-digimend", "DIGImend", ["digimend-dkms"], "DKMS", Tablet, digimendLogo),
         ],
       },
@@ -152,7 +152,6 @@ export const PAGES: Record<string, DriverPage> = {
         id: "makers",
         titleKey: MAKERS,
         items: [
-          maker("Wacom", PenTool, wacomLogo, "https://support.wacom.com/hc/en-us/articles/1500006331202"),
           maker("XP-Pen", PenTool, xppenLogo, "https://www.xp-pen.com/download/"),
           maker("Huion", PenTool, huionLogo, "https://www.huion.com/download"),
           maker("Gaomon", PenTool, gaomonLogo, "https://download.gaomon.net/"),

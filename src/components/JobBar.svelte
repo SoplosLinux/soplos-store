@@ -4,13 +4,20 @@
   import { jobs } from "../lib/jobs";
 
   // Strip above the progress bar with the current (or last) job, its
-  // latest output line and the full log on demand.
+  // latest output line and the full log on demand. The log is one output for
+  // everything that ran since the strip was last closed: when an update goes
+  // through APT and then Flatpak, the second job is added under the first
+  // instead of replacing it.
   let expanded = false;
   let dismissedId: number | null = null;
 
-  $: job = [...$jobs].reverse().find((j) => j.status === "running") ?? $jobs[$jobs.length - 1];
-  $: visible = job && job.id !== dismissedId;
+  // The jobs after the last one that was closed.
+  $: closedAt = dismissedId === null ? -1 : $jobs.findIndex((j) => j.id === dismissedId);
+  $: session = $jobs.slice(closedAt + 1);
+  $: job = [...session].reverse().find((j) => j.status === "running") ?? session[session.length - 1];
+  $: visible = !!job;
   $: lastLine = job?.lines[job.lines.length - 1] ?? "";
+  $: log = session.map((j) => `── ${j.title} ──\n${j.lines.join("\n")}`).join("\n\n");
 
   // Keeps the log scrolled to the newest line. Done as an action on the
   // element itself: assigning to a component variable's property
@@ -46,7 +53,7 @@
           class="p-1 rounded text-text-muted hover:bg-surface hover:text-text-bright shrink-0"
           title={$_("jobs.close")}
           on:click={() => {
-            dismissedId = job.id;
+            dismissedId = session[session.length - 1].id;
             expanded = false;
           }}
         >
@@ -56,8 +63,8 @@
     </div>
     {#if expanded}
       <pre
-        use:stickToBottom={job.lines.length}
-        class="content-scroll max-h-[180px] overflow-auto mx-4 mb-2 p-2.5 rounded bg-dark border border-border text-[0.7rem] text-text font-mono whitespace-pre-wrap">{job.lines.join("\n")}</pre>
+        use:stickToBottom={log.length}
+        class="content-scroll h-[200px] overflow-auto mx-4 mb-2 p-2.5 rounded bg-dark border border-border text-[0.7rem] text-text font-mono whitespace-pre-wrap">{log}</pre>
     {/if}
   </div>
 {/if}

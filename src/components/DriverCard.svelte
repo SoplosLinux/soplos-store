@@ -12,6 +12,8 @@
   export let logo = "";
   /** Shown on the white tile when there is no logo. */
   export let icon: ComponentType | null = null;
+  /** Text of a link under the description that opens the page of the maker, for a card that installs. */
+  export let moreText = "";
   /** Hides the installed or not badge, for a card that stands for no packages. */
   export let noStatus = false;
   /** Text of the button of a card that opens a web page instead of installing. */
@@ -79,6 +81,9 @@
       {/if}
     </div>
     <p class="text-[0.8rem] text-text-muted flex-1">{hint}</p>
+    {#if moreText && !linkText}
+      <button class="self-start text-[0.76rem] text-primary hover:underline" on:click={() => dispatch("open")}>{moreText}</button>
+    {/if}
 
     {#if confirmText}
       <p class="text-[0.76rem] text-warning bg-warning/10 border border-warning/30 rounded px-3 py-2">{confirmText}</p>

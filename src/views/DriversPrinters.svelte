@@ -28,9 +28,9 @@
   type Brand = { name: string; logo: string; color: string; url: string; big: string; set?: string; removable?: boolean };
   const BRANDS: Record<string, Brand> = {
     hp: { name: "HP", logo: hpLogo, color: "0 150 214", url: "https://support.hp.com/", big: "HPLIP", set: "print-hp", removable: true },
-    brother: { name: "Brother", logo: brotherLogo, color: "0 87 184", url: "https://www.brother.es/soporte/drivers", big: "BRL", set: "print-brother", removable: true },
-    epson: { name: "Epson", logo: epsonLogo, color: "0 51 153", url: "https://epson.co.cr/Support/wa00821", big: "ESCPR", set: "print-epson", removable: true },
-    canon: { name: "Canon", logo: canonLogo, color: "204 0 0", url: "https://www.canon-europe.com/support/", big: "WEB" },
+    brother: { name: "Brother", logo: brotherLogo, color: "0 87 184", url: "https://support.brother.com/", big: "BRL", set: "print-brother", removable: true },
+    epson: { name: "Epson", logo: epsonLogo, color: "0 51 153", url: "https://support.epson.net/linux/Printer/LSB_distribution_pages/en/escpr2.php", big: "ESCPR", set: "print-epson", removable: true },
+    canon: { name: "Canon", logo: canonLogo, color: "204 0 0", url: "https://global.canon/en/support/", big: "WEB" },
     xerox: { name: "Xerox", logo: xeroxLogo, color: "215 25 33", url: "https://www.support.xerox.com/", big: "DEB", set: "print-xerox", removable: true },
     ricoh: { name: "Ricoh", logo: ricohLogo, color: "200 16 46", url: "https://www.ricoh.com/support", big: "DEB", set: "print-ricoh", removable: true },
     kyocera: { name: "Kyocera", logo: kyoceraLogo, color: "221 0 0", url: "https://www.kyoceradocumentsolutions.com/", big: "WEB" },

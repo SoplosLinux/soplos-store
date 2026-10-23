@@ -121,6 +121,8 @@
                 title={item.title}
                 hint={item.packages.join(" · ")}
                 installed={!!setOf(item.id)?.installed}
+                moreText={item.official ? $_("drivers.printers.open") : ""}
+                on:open={() => open(item.official ?? "")}
                 canRemove={!!item.removable}
                 busy={isBusy(`driver:${item.id}`, $jobs)}
                 disabled={working}
