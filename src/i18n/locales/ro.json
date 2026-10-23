@@ -274,6 +274,9 @@
       "official": "Drivere oficiale {name}",
       "officialHint": "Descarcă driverul modelului tău de pe pagina oficială a producătorului.",
       "open": "Deschide site-ul oficial",
+      "noteCommunity": "Driver neoficial, întreținut de comunitate.",
+      "community": "Driver comunitar pentru {name}",
+      "communityHint": "Nu este de la producător: este întreținut de comunitate. Verifică proiectul înainte să îl instalezi.",
       "sections": { "base": "Sistem de imprimare", "others": "Alți producători", "makers": "Producători", "tools": "Instrumente" },
       "cards": {
         "cups": { "title": "Sistem de imprimare (CUPS)", "hint": "CUPS, filtre, imprimare fără driver prin USB și instrumentul pentru imprimante." },

@@ -274,6 +274,9 @@
       "official": "Official {name} drivers",
       "officialHint": "Download the driver of your model from the official page of the maker.",
       "open": "Open the official website",
+      "noteCommunity": "Unofficial driver, kept by the community.",
+      "community": "Community driver for {name}",
+      "communityHint": "Not from the maker: it is kept by the community. Check the project before installing it.",
       "sections": { "base": "Printing system", "others": "Other makers", "makers": "Makers", "tools": "Tools" },
       "cards": {
         "cups": { "title": "Printing system (CUPS)", "hint": "CUPS, filters, driverless printing over USB and the printer settings tool." },

@@ -2,6 +2,23 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-6-beta] - 2026-10-23
+
+### Added
+
+- Drivers: the official page of each maker is in place on every page that has makers, and each was opened and checked: Epson (its Linux support page), Canon, Brother, Wacom, XP-Pen, Huion, Gaomon, Veikk, Ugee, Zebra, TSC, Blackmagic, Lenovo (its Linux page, which adapts to the country), Dell, HP, Framework, TUXEDO, CyberPower and Eaton. Those without a language in the address are shown in the language of the country, and the ones that were in Spanish only were changed to international addresses.
+- Drivers: a link that goes to a project kept by the community, not by the maker, is marked as such on its card ("Community driver for ...", with a warning to check the project first). AVerMedia (the open `open_gc573` driver of EverLive for the GC573), Parblo (the Linux support for its Coast tablets) and ASUS (asus-linux, with asusctl and supergfxctl) are the first.
+- Drivers, laptops: Slimbook, with its apps page. Wi-Fi and Bluetooth: Ralink, whose firmware is in `firmware-mediatek`. Pro audio: Scarlett, with `alsa-scarlett-gui` for Focusrite interfaces.
+- Drivers: logos for the makers and tools of the new pages, from their own sites, Simple Icons or Wikimedia Commons, trimmed of margins; SANE, DIGImend and Steam Deck included. Those that are white for dark headers were redrawn in dark grey so that they show on the white tile of the card.
+
+### Changed
+
+- Drivers, printers: Ricoh points to its global support page (the old one was a firmware center from 2002), Epson to its Linux support page and Brother to its drivers page. Samsung points to the page Samsung keeps about printer support with HP, and Canon to its support page.
+
+### Removed
+
+- Drivers: the makers that have no Linux driver and no page about it are gone from the pages: Elgato, Fujitsu (its scanners work with SANE), Focusrite, Behringer, PreSonus and APC (the apcupsd card covers it).
+
 ## [3.0.0-5-beta] - 2026-10-22
 
 ### Added

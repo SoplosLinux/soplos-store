@@ -274,6 +274,9 @@
       "official": "Driver ufficiali {name}",
       "officialHint": "Scarica il driver del tuo modello dalla pagina ufficiale del produttore.",
       "open": "Apri il sito ufficiale",
+      "noteCommunity": "Driver non ufficiale, mantenuto dalla comunità.",
+      "community": "Driver della comunità per {name}",
+      "communityHint": "Non è del produttore: lo mantiene la comunità. Controlla il progetto prima di installarlo.",
       "sections": { "base": "Sistema di stampa", "others": "Altri produttori", "makers": "Produttori", "tools": "Strumenti" },
       "cards": {
         "cups": { "title": "Sistema di stampa (CUPS)", "hint": "CUPS, filtri, stampa senza driver via USB e lo strumento per le stampanti." },

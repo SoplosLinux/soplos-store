@@ -28,16 +28,16 @@
   type Brand = { name: string; logo: string; color: string; url: string; big: string; set?: string; removable?: boolean };
   const BRANDS: Record<string, Brand> = {
     hp: { name: "HP", logo: hpLogo, color: "0 150 214", url: "https://support.hp.com/", big: "HPLIP", set: "print-hp", removable: true },
-    brother: { name: "Brother", logo: brotherLogo, color: "0 87 184", url: "https://support.brother.com/", big: "BRL", set: "print-brother", removable: true },
-    epson: { name: "Epson", logo: epsonLogo, color: "0 51 153", url: "https://epson.com/Support", big: "ESCPR", set: "print-epson", removable: true },
+    brother: { name: "Brother", logo: brotherLogo, color: "0 87 184", url: "https://www.brother.es/soporte/drivers", big: "BRL", set: "print-brother", removable: true },
+    epson: { name: "Epson", logo: epsonLogo, color: "0 51 153", url: "https://epson.co.cr/Support/wa00821", big: "ESCPR", set: "print-epson", removable: true },
     canon: { name: "Canon", logo: canonLogo, color: "204 0 0", url: "https://www.canon-europe.com/support/", big: "WEB" },
     xerox: { name: "Xerox", logo: xeroxLogo, color: "215 25 33", url: "https://www.support.xerox.com/", big: "DEB", set: "print-xerox", removable: true },
-    ricoh: { name: "Ricoh", logo: ricohLogo, color: "200 16 46", url: "https://support.ricoh.com/", big: "DEB", set: "print-ricoh", removable: true },
+    ricoh: { name: "Ricoh", logo: ricohLogo, color: "200 16 46", url: "https://www.ricoh.com/support", big: "DEB", set: "print-ricoh", removable: true },
     kyocera: { name: "Kyocera", logo: kyoceraLogo, color: "221 0 0", url: "https://www.kyoceradocumentsolutions.com/", big: "WEB" },
     lexmark: { name: "Lexmark", logo: lexmarkLogo, color: "28 156 59", url: "https://support.lexmark.com/", big: "WEB" },
     oki: { name: "OKI", logo: okiLogo, color: "230 0 18", url: "https://www.oki.com/", big: "DEB", set: "print-oki", removable: true },
     konicaminolta: { name: "Konica Minolta", logo: konicaLogo, color: "0 114 206", url: "https://www.konicaminolta.com/", big: "WEB" },
-    samsung: { name: "Samsung", logo: samsungLogo, color: "20 40 160", url: "https://support.hp.com/", big: "DEB", set: "print-samsung", removable: true },
+    samsung: { name: "Samsung", logo: samsungLogo, color: "20 40 160", url: "https://www.samsung.com/uk/support/hp-support/", big: "DEB", set: "print-samsung", removable: true },
     pantum: { name: "Pantum", logo: pantumLogo, color: "0 159 227", url: "https://global.pantum.com/", big: "WEB" },
   };
   const ORDER = Object.keys(BRANDS);
@@ -141,7 +141,7 @@
           >
             {$_("drivers.installMissing")}
           </button>
-        {:else}
+        {:else if BRANDS[s.key].url}
           <button class="px-4 py-2 rounded bg-primary hover:bg-primary-hover text-white text-[0.85rem] font-semibold" on:click={() => open(BRANDS[s.key].url)}>
             {$_("drivers.printers.open")}
           </button>
@@ -194,15 +194,17 @@
             on:install={() => installSet(brand.set ?? "", $_(`drivers.printers.cards.${id}.title`))}
             on:remove={() => removeSet(brand.set ?? "", $_(`drivers.printers.cards.${id}.title`))}
           />
-          <DriverCard
-            color={brand.color}
-            logo={brand.logo}
-            big="WEB"
-            title={$_("drivers.printers.official", { values: { name: brand.name } })}
-            hint={$_("drivers.printers.officialHint")}
-            linkText={$_("drivers.printers.open")}
-            on:open={() => open(brand.url)}
-          />
+          {#if brand.url}
+            <DriverCard
+              color={brand.color}
+              logo={brand.logo}
+              big="WEB"
+              title={$_("drivers.printers.official", { values: { name: brand.name } })}
+              hint={$_("drivers.printers.officialHint")}
+              linkText={$_("drivers.printers.open")}
+              on:open={() => open(brand.url)}
+            />
+          {/if}
         </div>
       </section>
     {/each}

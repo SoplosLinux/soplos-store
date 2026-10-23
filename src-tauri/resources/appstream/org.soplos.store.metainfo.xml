@@ -281,6 +281,14 @@
   </developer>
 
   <releases>
+    <release version="3.0.0-6-beta" date="2026-10-23">
+      <description>
+        <p>Drivers: every maker now points to its official page for Linux, checked one by one, in the language of the visitor's country.</p>
+        <p>Links to drivers kept by the community, such as AVerMedia, Parblo and ASUS, are marked as such on their card.</p>
+        <p>New: Slimbook, Ralink, and Scarlett for Focusrite audio interfaces. Official logos for the makers and tools of every page.</p>
+        <p>Makers that have no Linux driver were removed from the pages.</p>
+      </description>
+    </release>
     <release version="3.0.0-5-beta" date="2026-10-22">
       <description>
         <p>Drivers now has all fifteen categories: graphics, printers, scanners, graphics tablets, labels, capture cards, gaming peripherals, Wi-Fi and Bluetooth, laptops, pro audio, network, fingerprint readers, UPS, RGB and cooling, and virtual machines, each with the official logo of its makers and tools.</p>

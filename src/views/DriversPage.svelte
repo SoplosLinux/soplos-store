@@ -48,7 +48,7 @@
       title: item.title,
       kind: "",
       status: hasPackages ? (packageSets.find((s) => s.id === item.id)?.installed ? "installed" : "missing") : "",
-      note: hasPackages ? $_("drivers.printers.noteDebian") : $_("drivers.printers.noteOfficial"),
+      note: hasPackages ? $_("drivers.printers.noteDebian") : item.community ? $_("drivers.printers.noteCommunity") : $_("drivers.printers.noteOfficial"),
       yours: false,
     };
   }
@@ -133,8 +133,8 @@
                 logo={item.logo ?? ""}
                 icon={item.logo ? null : item.icon}
                 big={item.big}
-                title={$_("drivers.printers.official", { values: { name: item.title } })}
-                hint={$_("drivers.printers.officialHint")}
+                title={$_(item.community ? "drivers.printers.community" : "drivers.printers.official", { values: { name: item.title } })}
+                hint={$_(item.community ? "drivers.printers.communityHint" : "drivers.printers.officialHint")}
                 linkText={item.official ? $_("drivers.printers.open") : ""}
                 blocked={item.official ? "" : $_("drivers.soon")}
                 noStatus

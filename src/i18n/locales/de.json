@@ -274,6 +274,9 @@
       "official": "Offizielle {name}-Treiber",
       "officialHint": "Laden Sie den Treiber Ihres Modells von der offiziellen Seite des Herstellers.",
       "open": "Offizielle Website öffnen",
+      "noteCommunity": "Inoffizieller Treiber, von der Gemeinschaft gepflegt.",
+      "community": "Community-Treiber für {name}",
+      "communityHint": "Nicht vom Hersteller: Er wird von der Gemeinschaft gepflegt. Prüfen Sie das Projekt vor der Installation.",
       "sections": { "base": "Drucksystem", "others": "Weitere Hersteller", "makers": "Hersteller", "tools": "Werkzeuge" },
       "cards": {
         "cups": { "title": "Drucksystem (CUPS)", "hint": "CUPS, Filter, treiberloses Drucken über USB und das Druckerwerkzeug." },

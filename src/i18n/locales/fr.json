@@ -274,6 +274,9 @@
       "official": "Pilotes officiels {name}",
       "officialHint": "Téléchargez le pilote de votre modèle sur la page officielle du fabricant.",
       "open": "Ouvrir le site officiel",
+      "noteCommunity": "Pilote non officiel, maintenu par la communauté.",
+      "community": "Pilote communautaire pour {name}",
+      "communityHint": "Il ne vient pas du fabricant : il est maintenu par la communauté. Vérifiez le projet avant de l'installer.",
       "sections": { "base": "Système d'impression", "others": "Autres fabricants", "makers": "Fabricants", "tools": "Outils" },
       "cards": {
         "cups": { "title": "Système d'impression (CUPS)", "hint": "CUPS, filtres, impression sans pilote en USB et l'outil de réglage des imprimantes." },
