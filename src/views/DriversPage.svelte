@@ -48,7 +48,7 @@
       title: item.title,
       kind: "",
       status: hasPackages ? (packageSets.find((s) => s.id === item.id)?.installed ? "installed" : "missing") : "",
-      note: hasPackages ? $_("drivers.printers.noteDebian") : item.community ? $_("drivers.printers.noteCommunity") : $_("drivers.printers.noteOfficial"),
+      note: hasPackages ? $_(item.noteKey ?? "drivers.printers.noteDebian") : item.community ? $_("drivers.printers.noteCommunity") : $_("drivers.printers.noteOfficial"),
       yours: false,
     };
   }

@@ -5,6 +5,7 @@ import { _ } from "svelte-i18n";
 import { busy } from "./busy";
 import { settings } from "./settings";
 import type { SourceKind } from "./api";
+import { newProgress, track, type JobProgress } from "./updateProgress";
 
 export type JobAction =
   | "install"
@@ -34,6 +35,8 @@ export interface Job {
   /** App the job belongs to, so its buttons can show it is busy. */
   key?: string;
   lines: string[];
+  /** How far the job is, read from its output (see updateProgress.ts). */
+  progress: JobProgress;
   status: "running" | "done" | "failed" | "cancelled";
 }
 
@@ -66,7 +69,11 @@ export async function initJobs() {
       return;
     }
     jobs.update((list) =>
-      list.map((j) => (j.id === payload.id ? { ...j, lines: [...j.lines, payload.line].slice(-MAX_LINES) } : j)),
+      list.map((j) => {
+        if (j.id !== payload.id) return j;
+        track(j.progress, payload.line);
+        return { ...j, lines: [...j.lines, payload.line].slice(-MAX_LINES), progress: j.progress };
+      }),
     );
   });
   await listen<JobDone>("job-done", ({ payload }) => finish(payload));
@@ -90,11 +97,14 @@ export async function runJob(title: string, request: JobRequest, key?: string): 
   try {
     id = await invoke<number>("start_job", { request: { ...request, ids: request.ids ?? [] } });
   } catch (error) {
-    jobs.update((list) => [...list.slice(-20), { id: -Date.now(), title, key, lines: [String(error)], status: "failed" }]);
+    jobs.update((list) => [...list.slice(-20), { id: -Date.now(), title, key, lines: [String(error)], progress: newProgress(), status: "failed" }]);
     return false;
   }
   busy.update((n) => n + 1);
-  jobs.update((list) => [...list.slice(-20), { id, title, key, lines: earlyLines.get(id) ?? [], status: "running" }]);
+  const early = earlyLines.get(id) ?? [];
+  const progress = newProgress();
+  early.forEach((line) => track(progress, line));
+  jobs.update((list) => [...list.slice(-20), { id, title, key, lines: early, progress, status: "running" }]);
   earlyLines.delete(id);
   return new Promise((resolve) => {
     waiting.set(id, resolve);

@@ -281,6 +281,12 @@
   </developer>
 
   <releases>
+    <release version="3.0.0-8-beta" date="2026-10-24">
+      <description>
+        <p>Updates: the button of each app says what is happening (Preparing, Downloading, Installing) and a thin bar under its row shows how far it is, also for "Update all". Apps waiting for their turn say so, and the button no longer goes back to "Update" before the page says everything is up to date.</p>
+        <p>Drivers: new "Apple Mac" section in the Laptops page, with mbpfan and the FaceTime HD camera driver (a community project, experimental).</p>
+      </description>
+    </release>
     <release version="3.0.0-7-beta" date="2026-10-23">
       <description>
         <p>The window follows the light or dark theme of the desktop (Xfce, Plasma and GNOME), with an Appearance setting to choose Automatic, Light or Dark.</p>

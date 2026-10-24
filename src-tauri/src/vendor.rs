@@ -6,14 +6,127 @@
 // source around.
 
 /// Every id the helper accepts, with the packages it installs.
-pub const ITEMS: [(&str, &[&str]); 6] = [
+pub const ITEMS: [(&str, &[&str]); 7] = [
     ("oneapi-dpcpp", &["intel-oneapi-compiler-dpcpp-cpp"]),
     ("oneapi-mkl", &["intel-oneapi-mkl-devel"]),
     ("oneapi-vtune", &["intel-oneapi-vtune"]),
     ("oneapi-base", &["intel-oneapi-base-toolkit"]),
     ("cuda-toolkit", &["cuda-toolkit"]),
     ("openrgb", &["openrgb"]),
+    ("facetimehd", &["facetimehd-dkms"]),
 ];
+
+// facetimehd is not in Debian. Both projects are fetched at the commit named
+// here, never at a branch, so the root script always runs the code that was
+// reviewed; the firmware script also checks every file it extracts against
+// pinned checksums.
+const FACETIMEHD_COMMIT: &str = "6dc8cd85e87993ff21cb01eb333ff42afb058551";
+const FACETIMEHD_FIRMWARE_COMMIT: &str = "60ee21228d9ca00a7bd84fdaefaff00a81f1db91";
+
+// Builds a local package from the driver sources so that dpkg owns the module
+// (it shows as installed and apt can remove it); DKMS rebuilds it for every
+// new kernel. The firmware comes from Apple's own update servers, extracted
+// on this computer by the firmware project's script, and is removed with the
+// package.
+const FACETIMEHD_SCRIPT: &str = r##"set -e
+export DEBIAN_FRONTEND=noninteractive
+echo "=== FaceTime HD camera (facetimehd, community driver) ==="
+apt-get install -y dkms build-essential git curl xz-utils ca-certificates
+apt-get install -y linux-headers-$(uname -r) || true
+if [ ! -e /lib/modules/$(uname -r)/build ]; then
+    echo "Kernel build tree missing or broken, reinstalling headers..."
+    apt-get install -y --reinstall linux-headers-$(uname -r) || true
+fi
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+fetch_commit() {
+    mkdir -p "$WORK/$1"
+    git -C "$WORK/$1" init -q
+    git -C "$WORK/$1" fetch -q --depth 1 "$2" "$3"
+    git -C "$WORK/$1" checkout -q FETCH_HEAD
+    if [ "$(git -C "$WORK/$1" rev-parse HEAD)" != "$3" ]; then
+        echo "ERROR: $1 is not the commit that was expected."
+        exit 1
+    fi
+}
+
+echo "Downloading the driver sources..."
+fetch_commit driver https://github.com/patjak/facetimehd @FACETIMEHD_COMMIT@
+fetch_commit firmware https://github.com/patjak/facetimehd-firmware @FIRMWARE_COMMIT@
+
+echo "Downloading the camera firmware from Apple and checking it..."
+bash "$WORK/firmware/facetimehd-firmware-install.sh"
+if [ ! -s /usr/lib/firmware/facetimehd/firmware.bin ] && [ ! -s /lib/firmware/facetimehd/firmware.bin ]; then
+    echo "ERROR: the camera firmware was not installed."
+    exit 1
+fi
+
+VERSION=$(sed -n 's/^PACKAGE_VERSION=//p' "$WORK/driver/dkms.conf" | tr -d '"')
+if [ -z "$VERSION" ]; then
+    echo "ERROR: could not read the driver version."
+    exit 1
+fi
+PKG="$WORK/pkg"
+SRC="$PKG/usr/src/facetimehd-$VERSION"
+mkdir -p "$PKG/DEBIAN" "$SRC" "$PKG/usr/lib/modprobe.d"
+cp -a "$WORK/driver/." "$SRC/"
+rm -rf "$SRC/.git"
+printf 'blacklist bdc_pci\n' > "$PKG/usr/lib/modprobe.d/facetimehd.conf"
+
+cat > "$PKG/DEBIAN/control" <<CONTROL
+Package: facetimehd-dkms
+Version: $VERSION+git@SHORT_COMMIT@
+Section: kernel
+Priority: optional
+Architecture: all
+Depends: dkms
+Description: FaceTime HD (Broadcom 1570) camera driver of the MacBook, DKMS source
+ Community driver of the PCIe webcam of recent MacBooks, built by the Soplos
+ Store from https://github.com/patjak/facetimehd. The firmware of the camera
+ is downloaded from Apple at install time and removed with this package.
+CONTROL
+
+cat > "$PKG/DEBIAN/postinst" <<POSTINST
+#!/bin/sh
+set -e
+if [ "\$1" = configure ]; then
+    dkms add -m facetimehd -v $VERSION > /dev/null 2>&1 || true
+fi
+POSTINST
+cat > "$PKG/DEBIAN/prerm" <<PRERM
+#!/bin/sh
+set -e
+if [ "\$1" = remove ]; then
+    dkms remove -m facetimehd -v $VERSION --all > /dev/null 2>&1 || true
+fi
+PRERM
+cat > "$PKG/DEBIAN/postrm" <<POSTRM
+#!/bin/sh
+set -e
+if [ "\$1" = remove ] || [ "\$1" = purge ]; then
+    rm -rf /usr/lib/firmware/facetimehd /lib/firmware/facetimehd
+fi
+POSTRM
+chmod 755 "$PKG/DEBIAN/postinst" "$PKG/DEBIAN/prerm" "$PKG/DEBIAN/postrm"
+
+dpkg-deb --root-owner-group --build "$PKG" "$WORK/facetimehd-dkms.deb"
+apt-get install -y --no-remove "$WORK/facetimehd-dkms.deb"
+
+echo "Building the module for the running kernel..."
+if ! dkms install -m facetimehd -v "$VERSION" -k "$(uname -r)"; then
+    echo "ERROR: the module did not build for $(uname -r)."
+    apt-get remove -y facetimehd-dkms || true
+    exit 1
+fi
+modprobe -r bdc_pci 2> /dev/null || true
+modprobe facetimehd || echo "The module could not be loaded now; restart the computer."
+if command -v mokutil > /dev/null 2>&1 && mokutil --sb-state 2> /dev/null | grep -qi "SecureBoot enabled"; then
+    echo "Secure Boot is on: the module is signed with the DKMS key, which has to be enrolled for the camera to load."
+fi
+echo "FaceTime HD camera driver installed."
+"##;
 
 /// The packages of an id, if it is in the list.
 pub fn packages(id: &str) -> Option<&'static [&'static str]> {
@@ -27,7 +140,12 @@ pub fn is_item(id: &str) -> bool {
 /// The script that installs one item from the repository of its maker.
 pub fn install_script(id: &str) -> Result<String, String> {
     let packages = packages(id).ok_or_else(|| format!("Not a developer stack of the Store: {id}"))?.join(" ");
-    let script = if id == "openrgb" {
+    let script = if id == "facetimehd" {
+        FACETIMEHD_SCRIPT
+            .replace("@FACETIMEHD_COMMIT@", FACETIMEHD_COMMIT)
+            .replace("@FIRMWARE_COMMIT@", FACETIMEHD_FIRMWARE_COMMIT)
+            .replace("@SHORT_COMMIT@", &FACETIMEHD_COMMIT[..7])
+    } else if id == "openrgb" {
         // The Debian package ships no udev rules, and OpenRGB 1.0 generates
         // them itself, without a display. The i2c-dev module is loaded for
         // the motherboard and memory controllers.

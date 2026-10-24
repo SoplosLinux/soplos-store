@@ -2,6 +2,14 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-8-beta] - 2026-10-24
+
+### Added
+
+- Updates: the button of each app now says what is happening to it (Preparing, Downloading, Installing) and a thin bar under its row shows how far it is, both for the button of the app and for "Update all". It is read from the output of the job: for apt, the files downloaded and the packages already set up; for the other sources, the percentage the tool prints when there is one and the stage otherwise.
+
+- Drivers, Laptops page: a new "Apple Mac" section with mbpfan (fan control for MacBooks, from Debian) and the FaceTime HD camera driver (facetimehd, a community project that is not in Debian). The camera driver is built into a local package from the project sources at a pinned commit, so DKMS rebuilds it for every kernel and the Store can remove it; the camera firmware is downloaded from Apple's update servers and checked against pinned checksums. It is marked as experimental, as the project itself says. Both were tested on MacBooks by a user of the community.
+
 ## [3.0.0-7-beta] - 2026-10-23
 
 ### Added

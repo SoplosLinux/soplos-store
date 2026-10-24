@@ -5,6 +5,7 @@
   import { api, type SourceKind, type UpdateItem } from "../lib/api";
   import { jobs, runJob, refreshLists } from "../lib/jobs";
   import { availableSources } from "../lib/sources";
+  import { rowProgress, type RowProgress } from "../lib/updateProgress";
   import AppIcon from "../components/AppIcon.svelte";
   import CheckNowButton from "../components/CheckNowButton.svelte";
   import StateIcon from "../components/StateIcon.svelte";
@@ -66,22 +67,58 @@
     unselected = unselected;
   }
 
+  // Apps whose job has not started (it waits for the one before) and apps
+  // whose job has finished while the list is read again. Without the second
+  // the button would go back to "Update" for a moment before the page says
+  // everything is up to date.
+  let queued = new Set<string>();
+  let settled = new Set<string>();
+
   async function updateOne(item: UpdateItem) {
     const title = $_("jobs.updating", { values: { name: item.name } });
-    if (await runJob(title, { action: "update", source: item.source, ids: [item.id] }, keyOf(item))) await load(true);
+    if (await runJob(title, { action: "update", source: item.source, ids: [item.id] }, keyOf(item))) {
+      settled = new Set(settled).add(keyOf(item));
+      await load(true);
+      settled = new Set();
+    }
   }
 
   // One job per source, with every selected package of that source.
   async function updateSelected() {
     const selected = items.filter((item) => !unselected.has(keyOf(item)));
     const sources: SourceKind[] = ["apt", "flatpak", "snap", "appimage", "firmware"];
+    queued = new Set(selected.map(keyOf));
     for (const source of sources) {
-      const ids = selected.filter((item) => item.source === source).map((item) => item.id);
+      const group = selected.filter((item) => item.source === source);
+      const ids = group.map((item) => item.id);
       if (!ids.length) continue;
       const title = $_("jobs.updatingAll", { values: { count: ids.length } });
-      await runJob(title, { action: "update", source, ids }, `update-all:${source}`);
+      const ok = await runJob(title, { action: "update", source, ids }, `update-all:${source}`);
+      const keys = group.map(keyOf);
+      queued = new Set([...queued].filter((key) => !keys.includes(key)));
+      if (ok) settled = new Set([...settled, ...keys]);
     }
     await load(true);
+    settled = new Set();
+    queued = new Set();
+  }
+
+  // Where an app is while it updates: by the job of its own button, or by the
+  // job of "Update all" for its source when it is one of the selected apps.
+  // Null when nothing is updating it.
+  function progressOf(item: UpdateItem, list: typeof $jobs, skipped: Set<string>, waiting: Set<string>, finished: Set<string>): RowProgress | null {
+    const key = keyOf(item);
+    const own = list.find((j) => j.status === "running" && j.key === key);
+    if (own) return rowProgress(own.progress, item.source, item.id, 1);
+    if (skipped.has(key)) return null;
+    const group = list.find((j) => j.status === "running" && j.key === `update-all:${item.source}`);
+    if (group) {
+      const size = items.filter((i) => i.source === item.source && !skipped.has(keyOf(i))).length;
+      return rowProgress(group.progress, item.source, item.id, size);
+    }
+    if (finished.has(key)) return { phase: "done", fraction: 1 };
+    if (waiting.has(key)) return { phase: "queued", fraction: 0 };
+    return null;
   }
 
   function ago(seconds: number, lang: string | null | undefined) {
@@ -93,9 +130,10 @@
     return rtf.format(-Math.round(hours / 24), "day");
   }
 
-  $: anyRunning = $jobs.some(
-    (j) => j.status === "running" && (j.key === "refresh-lists" || j.key?.startsWith("update") || items.some((i) => keyOf(i) === j.key)),
-  );
+  $: anyRunning =
+    queued.size > 0 ||
+    settled.size > 0 ||
+    $jobs.some((j) => j.status === "running" && (j.key === "refresh-lists" || j.key?.startsWith("update") || items.some((i) => keyOf(i) === j.key)));
   $: selectedCount = items.filter((item) => !unselected.has(keyOf(item))).length;
   $: checkedLabel = checkedAt
     ? $_("updates.lastCheck", {
@@ -168,8 +206,8 @@
     </div>
 
     {#each items as item (keyOf(item))}
-      {@const running = $jobs.some((j) => j.key === keyOf(item) && j.status === "running")}
-      <div class="flex items-center gap-3.5 px-4 py-3 border-t border-border hover:bg-surface-2/40 transition-colors">
+      {@const progress = progressOf(item, $jobs, unselected, queued, settled)}
+      <div class="relative flex items-center gap-3.5 px-4 py-3 border-t border-border hover:bg-surface-2/40 transition-colors">
         <input
           type="checkbox"
           checked={!unselected.has(keyOf(item))}
@@ -187,11 +225,16 @@
         </div>
         <button
           class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.75rem] font-medium shrink-0 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-          disabled={anyRunning}
+          disabled={anyRunning || !!progress}
           on:click={() => updateOne(item)}
         >
-          {running ? $_("common.updating") : $_("common.update")}
+          {progress ? $_(`updates.phase.${progress.phase}`) : $_("common.update")}
         </button>
+        {#if progress}
+          <div class="absolute left-0 right-0 bottom-0 h-[3px] bg-surface-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress.fraction * 100)}>
+            <div class="h-full bg-primary transition-[width] duration-300" style="width: {Math.round(progress.fraction * 100)}%"></div>
+          </div>
+        {/if}
       </div>
     {/each}
 

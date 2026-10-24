@@ -193,6 +193,7 @@
     "cancelSelect": "Gata"
   },
   "updates": {
+    "phase": { "waiting": "Se pregătește", "downloading": "Se descarcă", "installing": "Se instalează", "queued": "În așteptare", "done": "Actualizat" },
     "count": "{count} actualizări disponibile",
     "none": "Totul este actualizat.",
     "checkNow": "Verifică acum",
@@ -277,7 +278,8 @@
       "noteCommunity": "Driver neoficial, întreținut de comunitate.",
       "community": "Driver comunitar pentru {name}",
       "communityHint": "Nu este de la producător: este întreținut de comunitate. Verifică proiectul înainte să îl instalezi.",
-      "sections": { "base": "Sistem de imprimare", "others": "Alți producători", "makers": "Producători", "tools": "Instrumente" },
+      "noteBuilt": "Driver al comunității, experimental: se compilează pe computerul tău din codul sursă al proiectului, iar firmware-ul camerei se descarcă de pe serverele Apple.",
+      "sections": { "base": "Sistem de imprimare", "others": "Alți producători", "makers": "Producători", "tools": "Instrumente", "mac": "Apple Mac" },
       "cards": {
         "cups": { "title": "Sistem de imprimare (CUPS)", "hint": "CUPS, filtre, imprimare fără driver prin USB și instrumentul pentru imprimante." },
         "pdf": { "title": "Imprimă în PDF", "hint": "O imprimantă virtuală care salvează orice document ca PDF." },

@@ -193,6 +193,7 @@
     "cancelSelect": "Listo"
   },
   "updates": {
+    "phase": { "waiting": "Preparando", "downloading": "Descargando", "installing": "Instalando", "queued": "En cola", "done": "Actualizado" },
     "count": "{count} actualizaciones disponibles",
     "none": "Todo está actualizado.",
     "checkNow": "Comprobar ahora",
@@ -277,7 +278,8 @@
       "noteCommunity": "Driver no oficial, mantenido por la comunidad.",
       "community": "Driver de la comunidad para {name}",
       "communityHint": "No es del fabricante: lo mantiene la comunidad. Revisa el proyecto antes de instalarlo.",
-      "sections": { "base": "Sistema de impresión", "others": "Otros fabricantes", "makers": "Fabricantes", "tools": "Herramientas" },
+      "noteBuilt": "Driver de la comunidad, experimental: se compila en tu equipo a partir del código del proyecto y el firmware de la cámara se descarga de los servidores de Apple.",
+      "sections": { "base": "Sistema de impresión", "others": "Otros fabricantes", "makers": "Fabricantes", "tools": "Herramientas", "mac": "Apple Mac" },
       "cards": {
         "cups": { "title": "Sistema de impresión (CUPS)", "hint": "CUPS, filtros, impresión sin driver por USB y la herramienta de impresoras." },
         "pdf": { "title": "Imprimir a PDF", "hint": "Una impresora virtual que guarda cualquier documento como PDF." },

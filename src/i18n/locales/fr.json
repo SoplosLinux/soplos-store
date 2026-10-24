@@ -193,6 +193,7 @@
     "cancelSelect": "Terminé"
   },
   "updates": {
+    "phase": { "waiting": "Préparation", "downloading": "Téléchargement", "installing": "Installation", "queued": "En attente", "done": "Mis à jour" },
     "count": "{count} mises à jour disponibles",
     "none": "Tout est à jour.",
     "checkNow": "Vérifier maintenant",
@@ -277,7 +278,8 @@
       "noteCommunity": "Pilote non officiel, maintenu par la communauté.",
       "community": "Pilote communautaire pour {name}",
       "communityHint": "Il ne vient pas du fabricant : il est maintenu par la communauté. Vérifiez le projet avant de l'installer.",
-      "sections": { "base": "Système d'impression", "others": "Autres fabricants", "makers": "Fabricants", "tools": "Outils" },
+      "noteBuilt": "Pilote communautaire, expérimental : il est compilé sur votre ordinateur à partir des sources du projet, et le firmware de la caméra est téléchargé depuis les serveurs d'Apple.",
+      "sections": { "base": "Système d'impression", "others": "Autres fabricants", "makers": "Fabricants", "tools": "Outils", "mac": "Apple Mac" },
       "cards": {
         "cups": { "title": "Système d'impression (CUPS)", "hint": "CUPS, filtres, impression sans pilote en USB et l'outil de réglage des imprimantes." },
         "pdf": { "title": "Imprimer en PDF", "hint": "Une imprimante virtuelle qui enregistre tout document en PDF." },

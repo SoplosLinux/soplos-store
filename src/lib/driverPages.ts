@@ -78,6 +78,8 @@ export interface PageItem {
   official?: string | null;
   /** The link is a project kept by the community, not by the maker. */
   community?: boolean;
+  /** Key of the note of the hero, when the usual one does not fit. */
+  noteKey?: string;
 }
 
 export interface PageSection {
@@ -241,6 +243,15 @@ export const PAGES: Record<string, DriverPage> = {
           tool("lap-tlp", "TLP", ["tlp", "tlp-rdw"], "TLP", BatteryCharging),
           tool("lap-thermald", "thermald", ["thermald"], "TEMP", Thermometer),
           tool("lap-fwupd", "fwupd (LVFS)", ["fwupd"], "LVFS", Cpu, undefined, { removable: false }),
+        ],
+      },
+      {
+        id: "mac",
+        titleKey: "drivers.printers.sections.mac",
+        items: [
+          tool("lap-mbpfan", "mbpfan", ["mbpfan"], "FAN", Fan),
+          // Not in Debian: vendor.rs builds a local package from the project and Apple's firmware.
+          tool("lap-facetimehd", "FaceTime HD", ["facetimehd-dkms"], "CAM", Camera, undefined, { vendor: "facetimehd", noteKey: "drivers.printers.noteBuilt" }),
         ],
       },
       {
