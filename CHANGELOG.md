@@ -2,6 +2,12 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0-9-beta] - 2026-10-24
+
+### Fixed
+
+- Settings and Open package file: they had a fixed maximum width, so a maximized window was left half empty. Settings now flows its blocks into two columns on a wide window (one column on a narrow one), and the page of a package file uses the whole width.
+
 ## [3.0.0-8-beta] - 2026-10-24
 
 ### Added

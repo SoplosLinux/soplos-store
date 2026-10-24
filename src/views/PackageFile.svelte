@@ -58,7 +58,7 @@
 {:else if !pkg}
   <p class="text-[0.85rem] text-text-muted">{$_("local.unreadable")}</p>
 {:else}
-  <div class="bg-surface border border-border rounded p-5 flex items-center gap-5 max-w-[900px]">
+  <div class="bg-surface border border-border rounded p-5 flex items-center gap-5">
     <div class="w-[96px] h-[96px] rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
       <FileArchive size={48} strokeWidth={1.5} />
     </div>
@@ -88,7 +88,7 @@
     </div>
   </div>
 
-  <div class="bg-surface border border-border rounded p-4 mt-3.5 max-w-[900px] text-[0.8rem]">
+  <div class="bg-surface border border-border rounded p-4 mt-3.5 text-[0.8rem]">
     {#each [
       [$_("local.type"), $_(`local.kinds.${pkg.kind}`)],
       [$_("local.version"), pkg.version],

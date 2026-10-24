@@ -281,6 +281,11 @@
   </developer>
 
   <releases>
+    <release version="3.0.0-9-beta" date="2026-10-24">
+      <description>
+        <p>Settings flows into two columns on a wide window and the page of a package file uses the whole width, so a maximized window is no longer left half empty.</p>
+      </description>
+    </release>
     <release version="3.0.0-8-beta" date="2026-10-24">
       <description>
         <p>Updates: the button of each app says what is happening (Preparing, Downloading, Installing) and a thin bar under its row shows how far it is, also for "Update all". Apps waiting for their turn say so, and the button no longer goes back to "Update" before the page says everything is up to date.</p>

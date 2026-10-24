@@ -73,11 +73,12 @@
   const tagOff = "text-[0.62rem] px-1.5 py-0.5 rounded bg-surface-2 text-text-muted";
 </script>
 
-<div class="flex flex-col gap-3.5 max-w-[900px]">
+<!-- One column in a narrow window; on a wide one the blocks flow into two columns, so a maximized window is not left half empty. -->
+<div class="flex flex-col gap-3.5 xl:block xl:columns-2 xl:gap-x-3.5">
   {#if launchError}
     <p class="text-[0.8rem] text-danger bg-danger/10 border border-danger/40 rounded px-3 py-2">{launchError}</p>
   {/if}
-  <section class="bg-surface border border-border rounded px-4 py-1.5">
+  <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
     <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.sources")}</h3>
     <div class="settings-row">
       <div>
@@ -195,7 +196,7 @@
     </div>
   </section>
 
-  <section class="bg-surface border border-border rounded px-4 py-1.5">
+  <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
     <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.appearance")}</h3>
     <div class="settings-row">
       <div>
@@ -210,7 +211,7 @@
     </div>
   </section>
 
-  <section class="bg-surface border border-border rounded px-4 py-1.5">
+  <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
     <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.checks")}</h3>
     <div class="settings-row">
       <div>
@@ -242,7 +243,7 @@
     </div>
   </section>
 
-  <section class="bg-surface border border-border rounded px-4 py-1.5">
+  <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
     <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.recommendations")}</h3>
     <div class="settings-row">
       <div>
@@ -261,7 +262,7 @@
     </div>
   </section>
 
-  <section class="bg-surface border border-border rounded px-4 py-1.5">
+  <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
     <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.maintenance")}</h3>
     <div class="settings-row">
       <div>
