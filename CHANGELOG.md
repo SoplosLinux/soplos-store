@@ -2,6 +2,14 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.1-1-beta] - 2026-10-28
+
+### Changed
+
+- New application icon, in the sizes of the package, the window and the interface.
+- New hero image, with the circuit style of the other Soplos 3.0 programs.
+- New screenshots of Explore, App page, Categories, Category page, Installed, Batch uninstall and Settings, taken with the interface in English.
+
 ## [3.0.1-beta] - 2026-10-28
 
 ### Added

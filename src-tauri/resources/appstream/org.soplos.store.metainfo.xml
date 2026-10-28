@@ -281,6 +281,11 @@
   </developer>
 
   <releases>
+    <release version="3.0.1-1-beta" date="2026-10-28">
+      <description>
+        <p>New application icon, new hero image and new screenshots, taken with the interface in English.</p>
+      </description>
+    </release>
     <release version="3.0.1-beta" date="2026-10-28">
       <description>
         <p>Updates held back by apt because of their dependencies are no longer listed, and a package that needs a renamed library replaced is now shown, with what goes out and what comes in, and can be installed.</p>
