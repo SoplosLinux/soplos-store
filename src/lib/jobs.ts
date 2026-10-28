@@ -4,8 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import { _ } from "svelte-i18n";
 import { busy } from "./busy";
 import { settings } from "./settings";
-import type { SourceKind } from "./api";
-import { newProgress, track, type JobProgress } from "./updateProgress";
+import { api, type SourceKind } from "./api";
+import { newProgress, track, isStatusLine, type JobProgress } from "./updateProgress";
 
 export type JobAction =
   | "install"
@@ -72,7 +72,9 @@ export async function initJobs() {
       list.map((j) => {
         if (j.id !== payload.id) return j;
         track(j.progress, payload.line);
-        return { ...j, lines: [...j.lines, payload.line].slice(-MAX_LINES), progress: j.progress };
+        // The status lines apt writes for the progress are not part of its output.
+        const lines = isStatusLine(payload.line) ? j.lines : [...j.lines, payload.line].slice(-MAX_LINES);
+        return { ...j, lines, progress: j.progress };
       }),
     );
   });
@@ -104,7 +106,7 @@ export async function runJob(title: string, request: JobRequest, key?: string): 
   const early = earlyLines.get(id) ?? [];
   const progress = newProgress();
   early.forEach((line) => track(progress, line));
-  jobs.update((list) => [...list.slice(-20), { id, title, key, lines: early, progress, status: "running" }]);
+  jobs.update((list) => [...list.slice(-20), { id, title, key, lines: early.filter((line) => !isStatusLine(line)), progress, status: "running" }]);
   earlyLines.delete(id);
   return new Promise((resolve) => {
     waiting.set(id, resolve);
@@ -133,10 +135,17 @@ export async function refreshLists(): Promise<boolean> {
 /** Pending question shown by ScopeDialog: the app name and the answer callback. */
 export const scopeQuestion = writable<{ name: string; answer: (scope: "user" | "system" | null) => void } | null>(null);
 
-/** Flatpak install scope from Settings, asking when it is set to "ask". */
-export function chooseScope(name: string): Promise<"user" | "system" | null> {
+/**
+ * Flatpak install scope. When Flathub is set up in one installation only there
+ * is nothing to choose; with both (or none) it is the one chosen in Settings,
+ * asking when it is set to "ask".
+ */
+export async function chooseScope(name: string): Promise<"user" | "system" | null> {
+  const status = await api.sources().catch(() => null);
+  const flathub = status?.flathub;
+  if (flathub === "user" || flathub === "system") return flathub;
   const preferred = get(settings).flatpakScope;
-  if (preferred !== "ask") return Promise.resolve(preferred);
+  if (preferred !== "ask") return preferred;
   return new Promise((resolve) => {
     scopeQuestion.set({
       name,

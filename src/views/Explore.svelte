@@ -13,6 +13,7 @@
   import { onMount } from "svelte";
   import { _ } from "svelte-i18n";
   import { api } from "../lib/api";
+  import { settings } from "../lib/settings";
   import Carousel from "../components/Carousel.svelte";
   import AppTile from "../components/AppTile.svelte";
   import CollapsibleSearch from "../components/CollapsibleSearch.svelte";
@@ -35,6 +36,11 @@
     cachedSections = sections.length ? sections : null;
     loaded = true;
   });
+
+  // The three sections of the top can be turned off in Settings.
+  $: visibleSections = sections.filter((s) =>
+    s.id === "featured" ? $settings.showFeatured : s.id === "popular" ? $settings.showPopular : s.id === "trending" ? $settings.showTrending : true,
+  );
 
   // Reactive on purpose: a plain function calling $_ inside would not be
   // re-evaluated when the language changes.
@@ -74,7 +80,7 @@
 {:else if sections.length === 0}
   <p class="text-[0.85rem] text-text-muted">{$_("explore.unavailable")}</p>
 {:else}
-  {#each sections as section, i (section.id)}
+  {#each visibleSections as section, i (section.id)}
     <div class="flex items-center justify-between mb-3 {i === 0 ? 'mt-1' : 'mt-8'}">
       <h2 class="text-[1rem] font-semibold text-text-bright">{title(section.id)}</h2>
       {#if !FIXED_SECTIONS.includes(section.id)}

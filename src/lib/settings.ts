@@ -5,28 +5,37 @@ import { invoke } from "@tauri-apps/api/core";
 // install backend read them once those parts exist.
 export interface Settings {
   flatpakScope: "user" | "system" | "ask";
-  showAllPackages: boolean;
   autoCheck: boolean;
   frequency: "6h" | "12h" | "daily" | "weekly";
   notify: boolean;
-  flatpakAutoUpdate: boolean;
-  featured: boolean;
-  ratings: boolean;
-  proprietary: boolean;
+  // A source that is off shows nothing in the Store (catalog, installed
+  // apps, updates) and its updates are not looked for.
+  showFlatpak: boolean;
+  showSnap: boolean;
+  showAppimage: boolean;
+  // Sections of the home page.
+  showFeatured: boolean;
+  showPopular: boolean;
+  showTrending: boolean;
+  // The Drivers section of the sidebar.
+  showDrivers: boolean;
   // Look for firmware updates (fwupd) at all; off when the LVFS is down.
   firmwareUpdates: boolean;
 }
 
 const DEFAULTS: Settings = {
   flatpakScope: "user",
-  showAllPackages: false,
   autoCheck: true,
   frequency: "daily",
   notify: true,
-  flatpakAutoUpdate: false,
-  featured: true,
-  ratings: true,
-  proprietary: true,
+  showFlatpak: true,
+  showSnap: true,
+  showAppimage: true,
+  showFeatured: true,
+  showPopular: true,
+  showTrending: true,
+  // Off until Drivers is finished.
+  showDrivers: false,
   firmwareUpdates: true,
 };
 

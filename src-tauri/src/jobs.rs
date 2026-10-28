@@ -368,6 +368,7 @@ fn scan_step(app: &AppHandle, id: u64) -> usize {
     };
     apt::invalidate_installed();
     let mut all = Vec::new();
+    let (mut added, mut removed) = (Vec::new(), Vec::new());
     for source in catalog::scan() {
         for item in &source.items {
             say(format!("  {}  {} -> {}", item.name, item.from, item.to));
@@ -375,6 +376,8 @@ fn scan_step(app: &AppHandle, id: u64) -> usize {
         let result = if source.items.is_empty() { i18n::t("checklog.none") } else { i18n::t_n("checklog.found", source.items.len()) };
         say(format!("{}: {result} ({:.1} s)", source.label, source.took.as_secs_f32()));
         all.extend(source.items);
+        added.extend(source.added);
+        removed.extend(source.removed);
     }
     // AppImages without a version or an address are not looked at; they
     // are filled in by hand in AppImage Manager.
@@ -383,7 +386,7 @@ fn scan_step(app: &AppHandle, id: u64) -> usize {
         say(i18n::t_n("checklog.appimageHint", skipped));
     }
     let total = all.len();
-    checker::save(all);
+    checker::save_with_plan(all, added, removed);
     total
 }
 

@@ -1,6 +1,6 @@
 # Soplos Store 3.0
 
-![Version](https://img.shields.io/badge/version-3.0.0--7--beta-blue)
+![Version](https://img.shields.io/badge/version-3.0.1--beta-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green)
 ![Platform](https://img.shields.io/badge/platform-Linux-lightgrey)
 ![Tauri](https://img.shields.io/badge/Tauri-2-orange)
@@ -43,9 +43,9 @@ sudo apt install soplos-store
 - **Installed:** what is installed from APT, Flatpak, Snap and AppImages, with multi-selection for bulk removal and unified suite views (e.g. LibreOffice).
 - **Updates:** pending updates, one by one or all at once, with a permanent toolbar, select-all control, and real-time status.
 - **Drivers:** your graphics cards, each with the driver that fits it and its state, and the NVIDIA driver branches (550 from Debian, 580, 590 and 610 from NVIDIA's CUDA repository, and the legacy 470, 390 and 340 ones) as cards you install or remove with one confirmation. The installers carry the patches kernels 7.x need. AMD and Intel cards get their Mesa and firmware packages, and a hero that moves through every brand also offers the guest tools of VMware, QEMU/KVM and Proxmox, Virt-Manager and GNOME Boxes.
-- **Settings:** software sources (with a switch for firmware updates and one for the firmware testing channel), install scope, update checks, recommendations and maintenance.
+- **Settings:** software sources (with a switch for firmware updates and one for the firmware testing channel), install scope (asked only when Flathub is set up for both the user and the system), a switch to show or hide each source (Flatpak, Snap, AppImage), update checks, the sections of the home page and of the sidebar, and maintenance.
 
-An app available from several sources appears once, with a selector on its page to choose where to install it. Flatpak and Snap only appear as sources when they are installed.
+An app available from several sources appears once, with a selector on its page to choose where to install it. Flatpak and Snap only appear as sources when they are installed and turned on in Settings.
 
 ## Update notifier
 

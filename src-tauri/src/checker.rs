@@ -11,7 +11,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::UpdateItem;
+use crate::models::{PlanChange, UpdateItem};
 use crate::{apt, cache, catalog, settings};
 
 #[derive(Serialize, Deserialize)]
@@ -24,6 +24,12 @@ pub struct Stored {
     /// which counts as having no result.
     #[serde(default)]
     pub items: Option<Vec<UpdateItem>>,
+    /// Packages that come in and go out with the updates. Empty in a file
+    /// written before they were kept.
+    #[serde(default)]
+    pub added: Vec<PlanChange>,
+    #[serde(default)]
+    pub removed: Vec<PlanChange>,
 }
 
 fn now() -> u64 {
@@ -38,9 +44,16 @@ pub fn read() -> Option<Stored> {
     serde_json::from_slice(&std::fs::read(file()).ok()?).ok()
 }
 
-/// Stores what a check found and returns it.
+/// Stores what a check found and returns it. Only the tests use it, with no
+/// packages coming in or going out.
+#[cfg(test)]
 pub fn save(items: Vec<UpdateItem>) -> Stored {
-    let stored = Stored { count: items.len(), checked_at: now(), items: Some(items) };
+    save_with_plan(items, Vec::new(), Vec::new())
+}
+
+/// Like `save`, with the packages that come in and go out with the updates.
+pub fn save_with_plan(items: Vec<UpdateItem>, added: Vec<PlanChange>, removed: Vec<PlanChange>) -> Stored {
+    let stored = Stored { count: items.len(), checked_at: now(), items: Some(items), added, removed };
     if let Ok(data) = serde_json::to_vec(&stored) {
         let _ = std::fs::write(file(), data);
     }
@@ -55,7 +68,13 @@ pub fn age() -> Option<Duration> {
 /// Looks in every source and stores the result.
 pub fn scan_and_store() -> Stored {
     apt::invalidate_installed();
-    save(catalog::scan().into_iter().flat_map(|source| source.items).collect())
+    let (mut items, mut added, mut removed) = (Vec::new(), Vec::new(), Vec::new());
+    for source in catalog::scan() {
+        items.extend(source.items);
+        added.extend(source.added);
+        removed.extend(source.removed);
+    }
+    save_with_plan(items, added, removed)
 }
 
 /// Checks and stores the result; returns how many updates there are.

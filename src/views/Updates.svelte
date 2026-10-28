@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { CircleCheck, Search } from "lucide-svelte";
   import { _, locale } from "svelte-i18n";
-  import { api, type SourceKind, type UpdateItem } from "../lib/api";
+  import { api, type PlanChange, type SourceKind, type UpdateItem } from "../lib/api";
   import { jobs, runJob, refreshLists } from "../lib/jobs";
   import { availableSources } from "../lib/sources";
   import { rowProgress, type RowProgress } from "../lib/updateProgress";
@@ -12,6 +12,9 @@
   import UpdatesMeta from "../components/UpdatesMeta.svelte";
 
   let items: UpdateItem[] = [];
+  // What comes in and goes out with the updates; only told, never selected.
+  let added: PlanChange[] = [];
+  let removed: PlanChange[] = [];
   let loaded = false;
   let checkedAt: Date | null = null;
   let listsAge: number | null = null;
@@ -32,6 +35,8 @@
     listsAge = status?.listsAgeSecs ?? null;
     if (view) {
       items = view.items;
+      added = view.added ?? [];
+      removed = view.removed ?? [];
       checkedAt = view.checkedAt ? new Date(view.checkedAt * 1000) : null;
     }
     loaded = true;
@@ -180,9 +185,10 @@
     <CheckNowButton busy={anyRunning} disabled={!loaded} on:click={checkNow} />
   </div>
 {:else}
-  <div class="bg-surface border border-border rounded overflow-hidden">
-    <!-- The one bar: selection and count on the left, the two actions on the right -->
-    <div class="flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 bg-surface-2/60 border-b border-border text-[0.78rem] text-text-muted">
+  <!-- No overflow clipping here: it would stop the bar below from sticking to the top while the list scrolls -->
+  <div class="bg-surface border border-border rounded">
+    <!-- The one bar: selection and count on the left, the two actions on the right; it stays in view while the list scrolls -->
+    <div class="sticky top-[-1.75rem] z-10 rounded-t flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 bg-surface-2 border-b border-border text-[0.78rem] text-text-muted">
       <label class="flex items-center gap-2.5 cursor-pointer select-none">
         <input
           type="checkbox"
@@ -205,9 +211,32 @@
       </div>
     </div>
 
+    <!-- What the updates take out and bring in, as GNOME Software tells it: listed, not selectable -->
+    {#if removed.length || added.length}
+      {#if removed.length}
+        <div class="px-4 pt-3 pb-1.5 text-[0.75rem] font-semibold text-text-bright">{$_("updates.sectionRemoved")}</div>
+        {#each removed as change (change.name)}
+          <div class="flex items-center justify-between gap-3 px-4 py-2 border-t border-border text-[0.8rem]">
+            <span class="text-text truncate">{change.name}</span>
+            <span class="text-text-muted shrink-0">{change.version}</span>
+          </div>
+        {/each}
+      {/if}
+      {#if added.length}
+        <div class="px-4 pt-3 pb-1.5 text-[0.75rem] font-semibold text-text-bright">{$_("updates.sectionAdded")}</div>
+        {#each added as change (change.name)}
+          <div class="flex items-center justify-between gap-3 px-4 py-2 border-t border-border text-[0.8rem]">
+            <span class="text-text truncate">{change.name}</span>
+            <span class="text-text-muted shrink-0">{change.version}</span>
+          </div>
+        {/each}
+      {/if}
+      <div class="px-4 pt-3 pb-1.5 text-[0.75rem] font-semibold text-text-bright">{$_("updates.sectionUpdates")}</div>
+    {/if}
+
     {#each items as item (keyOf(item))}
       {@const progress = progressOf(item, $jobs, unselected, queued, settled)}
-      <div class="relative flex items-center gap-3.5 px-4 py-3 border-t border-border hover:bg-surface-2/40 transition-colors">
+      <div class="flex items-center gap-3.5 px-4 py-3 border-t border-border hover:bg-surface-2/40 transition-colors">
         <input
           type="checkbox"
           checked={!unselected.has(keyOf(item))}
@@ -223,23 +252,26 @@
           </div>
           <div class="text-[0.75rem] text-text-muted truncate mt-0.5">{item.from ? `${item.from} → ${item.to}` : item.to}</div>
         </div>
-        <button
-          class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.75rem] font-medium shrink-0 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-          disabled={anyRunning || !!progress}
-          on:click={() => updateOne(item)}
-        >
-          {progress ? $_(`updates.phase.${progress.phase}`) : $_("common.update")}
-        </button>
-        {#if progress}
-          <div class="absolute left-0 right-0 bottom-0 h-[3px] bg-surface-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress.fraction * 100)}>
-            <div class="h-full bg-primary transition-[width] duration-300" style="width: {Math.round(progress.fraction * 100)}%"></div>
-          </div>
-        {/if}
+        <!-- The line along the lower edge of the button is how far this app is (see updateProgress.ts) -->
+        <div class="relative shrink-0 rounded overflow-hidden">
+          <button
+            class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.75rem] font-medium disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            disabled={anyRunning || !!progress}
+            on:click={() => updateOne(item)}
+          >
+            {progress ? $_(`updates.phase.${progress.phase}`) : $_("common.update")}
+          </button>
+          {#if progress && progress.fraction !== null}
+            <div class="absolute left-0 right-0 bottom-0 h-[3px]" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress.fraction * 100)}>
+              <div class="h-full bg-primary transition-[width] duration-300" style="width: {Math.round(progress.fraction * 100)}%"></div>
+            </div>
+          {/if}
+        </div>
       </div>
     {/each}
 
     <!-- Same information as the empty state, once, at the foot of the list -->
-    <div class="px-4 py-2.5 border-t border-border bg-surface-2/30">
+    <div class="px-4 py-2.5 border-t border-border bg-surface-2/30 rounded-b">
       <UpdatesMeta checked={checkedLabel} lists={listsLabel} {listsStale} sources={sourcesLabel} />
     </div>
   </div>

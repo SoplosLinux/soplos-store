@@ -2,14 +2,16 @@
 // every source it can be installed from. All commands run on the
 // blocking thread pool so the window never freezes while loading.
 
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 
 use crate::apt::{self, AptApp};
 use crate::flathub::{self, Hit};
-use crate::models::{AppCard, AppDetail, AptStatus, InstalledApp, Section, SourceOption, SourcesStatus, UpdateItem, UpdatesView};
+use crate::models::{AppCard, AppDetail, AptStatus, InstalledApp, PlanChange, Section, SourceOption, SourcesStatus, UpdateItem, UpdatesView};
 use crate::{appimage, appimage_update, checker, desktop, flatpak, fwupd, odrs, settings, snap, system};
 
 /// Flathub category IDs and the matching AppStream main category.
@@ -134,13 +136,55 @@ fn card_from_snap(found: &snap::StoreSnap, state: &InstalledState) -> AppCard {
         name: found.title.clone(),
         summary: found.summary.clone(),
         icon: found.icon.clone(),
-        screenshot: None,
+        screenshot: found.screenshot.clone(),
         sources: vec!["snap".into()],
         installed: reference.installed,
         refs: vec![reference],
         rating: None,
         reviews: 0,
         categories: Vec::new(),
+    }
+}
+
+/// Snap Store categories that match a category of the Store.
+fn snap_categories(cat: &str) -> &'static [&'static str] {
+    match cat {
+        "audiovideo" => &["music-and-audio", "entertainment"],
+        "development" => &["development"],
+        "education" => &["education"],
+        "game" => &["games"],
+        "graphics" => &["photo-and-video", "art-and-design"],
+        "network" => &["social"],
+        "office" => &["productivity", "finance"],
+        "science" => &["science"],
+        "system" => &["security", "devices-and-iot"],
+        "utility" => &["utilities"],
+        _ => &[],
+    }
+}
+
+/// The snaps of the Snap Store categories that match a category of the Store;
+/// empty without snapd.
+fn snaps_of(cat: &str) -> Vec<snap::StoreSnap> {
+    let mut seen = HashSet::new();
+    snap_categories(cat).iter().flat_map(|name| snap::category(name)).filter(|found| seen.insert(found.name.clone())).collect()
+}
+
+/// Puts snaps among the cards: one with the name of an app that is already
+/// there becomes one more source of that card, the others get their own.
+fn add_snaps(cards: &mut Vec<AppCard>, snaps: Vec<snap::StoreSnap>, state: &InstalledState) {
+    for found in &snaps {
+        let key = normalize_name(&found.title);
+        match cards.iter_mut().find(|card| normalize_name(&card.name) == key) {
+            Some(card) => {
+                if !card.sources.iter().any(|s| s == "snap") {
+                    card.sources.push("snap".into());
+                    card.refs.push(snap_ref(&found.name, state));
+                }
+                card.installed |= state.snap.contains(&found.name);
+            }
+            None => cards.push(card_from_snap(found, state)),
+        }
     }
 }
 
@@ -158,17 +202,100 @@ fn add_screenshot(card: &mut AppCard) -> bool {
 /// Slides in the banner of every section and category page.
 const BANNER_SLIDES: usize = 5;
 
-/// The first apps with a screenshot go to the carousel, the rest below.
+/// Apps of each source (the first ones of each) looked at for the banner of a section.
+const BANNER_CANDIDATES: usize = 40;
+
+/// Of the best apps of each source, how many take turns from week to week.
+const BANNER_ROTATION: usize = 10;
+
+fn now_secs() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+/// The number of the week, so the banners change from one week to the next.
+fn week() -> usize {
+    (now_secs() / (7 * 86_400)) as usize
+}
+
+/// Where a card comes from, for sharing the banner out: Debian first (also
+/// when Flatpak has the app too), then Flatpak, then Snap.
+fn source_group(card: &AppCard) -> usize {
+    if card.sources.iter().any(|s| s == "apt") {
+        0
+    } else if card.sources.iter().any(|s| s == "flatpak") {
+        1
+    } else {
+        2
+    }
+}
+
+/// One of each in turn, so no source fills a section on its own.
+fn interleave(first: Vec<AppCard>, second: Vec<AppCard>) -> Vec<AppCard> {
+    let mut first = first.into_iter();
+    let mut second = second.into_iter();
+    let mut mixed = Vec::new();
+    loop {
+        let (a, b) = (first.next(), second.next());
+        if a.is_none() && b.is_none() {
+            break;
+        }
+        mixed.extend(a);
+        mixed.extend(b);
+    }
+    mixed
+}
+
+/// The banner takes the apps with a screenshot of every source in turn (APT,
+/// Flatpak, Snap), each in the order of the section, and the first ones of
+/// each source take turns week by week. What is left goes below, in the
+/// order it came.
 fn build_section(id: &str, cards: Vec<AppCard>, carousel: usize, grid: usize) -> Section {
-    let mut featured = Vec::new();
-    let mut apps = Vec::new();
-    for (n, mut card) in cards.into_iter().enumerate() {
-        if featured.len() < carousel && n < carousel + 6 && add_screenshot(&mut card) {
-            featured.push(card);
-        } else {
-            apps.push(card);
+    let mut slots: Vec<Option<AppCard>> = cards.into_iter().map(Some).collect();
+    let mut groups: [Vec<usize>; 3] = Default::default();
+    for (i, slot) in slots.iter().enumerate() {
+        if let Some(card) = slot {
+            let group = &mut groups[source_group(card)];
+            if group.len() < BANNER_CANDIDATES {
+                group.push(i);
+            }
         }
     }
+    for group in &mut groups {
+        let top = group.len().min(BANNER_ROTATION);
+        if top > 1 {
+            group[..top].rotate_left(week() % top);
+        }
+    }
+
+    let mut featured = Vec::new();
+    let mut next = [0usize; 3];
+    'fill: while featured.len() < carousel {
+        let mut taken = false;
+        for g in 0..groups.len() {
+            if featured.len() >= carousel {
+                break 'fill;
+            }
+            while next[g] < groups[g].len() {
+                let i = groups[g][next[g]];
+                next[g] += 1;
+                let Some(card) = slots[i].as_mut() else {
+                    continue;
+                };
+                if add_screenshot(card) {
+                    if let Some(card) = slots[i].take() {
+                        featured.push(card);
+                    }
+                    taken = true;
+                    break;
+                }
+            }
+        }
+        if !taken {
+            break;
+        }
+    }
+
+    let mut apps: Vec<AppCard> = slots.into_iter().flatten().collect();
     apps.truncate(grid);
     Section { id: id.to_string(), featured, apps }
 }
@@ -178,7 +305,9 @@ fn build_section(id: &str, cards: Vec<AppCard>, carousel: usize, grid: usize) ->
 /// into one card per app and ordered by number of ODRS ratings (the same
 /// measure for all sources). Ties keep Flathub's own order first.
 fn category_cards(cat: &str, main: &str, flathub_count: u32, state: &InstalledState) -> Vec<AppCard> {
-    let hits = flathub::collection(&format!("collection/category/{cat}"), flathub_count);
+    // Flathub is only asked when Flatpak is installed: without it the
+    // category is made of what the other sources have.
+    let hits = if flatpak::available() { flathub::collection(&format!("collection/category/{cat}"), flathub_count) } else { Vec::new() };
     // Debian apps already merged into a Flathub card are not listed twice.
     let merged: HashSet<String> = hits.iter().filter_map(|h| apt::find(&h.id, &h.name)).map(|a| a.id.clone()).collect();
     let mut cards: Vec<AppCard> = hits.iter().filter_map(|hit| card_from_hit(hit, state)).collect();
@@ -199,41 +328,91 @@ fn card_for_id(id: &str, state: &InstalledState) -> Option<AppCard> {
     card_from_hit(&flathub::hit_from_app(id, &app), state)
 }
 
-/// Featured: this week's picks in the banner and, below it, cards with
-/// today's app and the picks of the week before, so the banner is not
-/// followed straight by the next one.
-fn featured_section(state: &InstalledState) -> Section {
-    let featured: Vec<AppCard> = flathub::apps_of_the_week(0)
-        .iter()
-        .filter_map(|id| {
-            let app = flathub::app(id)?;
-            let mut card = card_from_hit(&flathub::hit_from_app(id, &app), state)?;
-            card.screenshot = flathub::screenshots(&app).into_iter().next();
-            Some(card)
+/// Apps of Debian that the ODRS ratings put first in a section. ODRS is keyed
+/// by AppStream ID and takes ratings from users of every distribution, so
+/// this is a global measure; only the apps of this machine's catalog are
+/// listed.
+///   featured: the best average, with a minimum of reviews;
+///   trending: the ones with a version released in the last 30 days;
+///   popular (and the rest): the most reviews.
+fn ranked_apt_apps(section: &str) -> Vec<&'static AptApp> {
+    const BEST_MIN_REVIEWS: u32 = 20;
+    const RECENT_DAYS: u64 = 30;
+    const RANKED: usize = 60;
+    let since = system::date_from_secs(now_secs().saturating_sub(RECENT_DAYS * 86_400));
+    let mut ranked: Vec<(&'static AptApp, odrs::Rating)> = apt::index()
+        .values()
+        .filter_map(|app| best_full_rating(&app.id, Some(app)).map(|rating| (app, rating)))
+        .filter(|(app, rating)| match section {
+            "featured" => rating.count >= BEST_MIN_REVIEWS,
+            "trending" => app.release.as_ref().is_some_and(|release| release.date.as_str() >= since.as_str()),
+            _ => true,
         })
         .collect();
+    ranked.sort_by(|a, b| {
+        let by = if section == "featured" {
+            b.1.average.partial_cmp(&a.1.average).unwrap_or(Ordering::Equal).then(b.1.count.cmp(&a.1.count))
+        } else {
+            b.1.count.cmp(&a.1.count)
+        };
+        by.then_with(|| a.0.name.cmp(&b.0.name))
+    });
+    ranked.into_iter().take(RANKED).map(|(app, _)| app).collect()
+}
 
-    let mut shown: HashSet<String> = featured.iter().map(|c| c.id.clone()).collect();
-    let mut apps: Vec<AppCard> = Vec::new();
-    let candidates = flathub::app_of_the_day().into_iter().chain(flathub::apps_of_the_week(7));
-    for id in candidates {
-        if apps.len() >= 6 {
-            break;
-        }
-        if !shown.insert(id.clone()) {
-            continue;
-        }
-        if let Some(card) = card_for_id(&id, state) {
-            apps.push(card);
+/// Debian apps of a ranking, left out the ones already in `taken`, as cards.
+fn apt_cards(section: &str, taken: &HashSet<String>, state: &InstalledState) -> Vec<AppCard> {
+    ranked_apt_apps(section).into_iter().filter(|app| !taken.contains(&app.id)).map(|app| card_from_apt(app, state)).collect()
+}
+
+/// The Debian app of each card, so it is not listed a second time.
+fn debian_ids(cards: &[AppCard]) -> HashSet<String> {
+    cards.iter().filter_map(|card| apt::find(&card.id, &card.name)).map(|app| app.id.clone()).collect()
+}
+
+/// Featured: this week's picks of Flathub (only when Flatpak is installed),
+/// the best rated apps of Debian, in turn, and the featured snaps of the Snap
+/// Store (only when snapd is installed). The banner takes all of them.
+fn featured_section(state: &InstalledState) -> Section {
+    let mut flat: Vec<AppCard> = Vec::new();
+    if flatpak::available() {
+        let candidates = flathub::apps_of_the_week(0).into_iter().chain(flathub::app_of_the_day()).chain(flathub::apps_of_the_week(7));
+        let mut shown: HashSet<String> = HashSet::new();
+        for id in candidates {
+            if flat.len() >= 12 {
+                break;
+            }
+            if !shown.insert(id.clone()) {
+                continue;
+            }
+            if let Some(card) = card_for_id(&id, state) {
+                flat.push(card);
+            }
         }
     }
-    Section { id: "featured".into(), featured, apps }
+    let taken = debian_ids(&flat);
+    let debian = apt_cards("featured", &taken, state);
+    let mut cards = interleave(flat, debian);
+    add_snaps(&mut cards, snap::category("featured"), state);
+    build_section("featured", cards, BANNER_SLIDES, 6)
+}
+
+/// Popular and trending: the list of Flathub (only when Flatpak is installed)
+/// and the ranking of Debian apps, in turn.
+fn list_cards(section: &str, state: &InstalledState) -> Vec<AppCard> {
+    let hits = if flatpak::available() { flathub::collection(&format!("collection/{section}"), 15) } else { Vec::new() };
+    let flat: Vec<AppCard> = hits.iter().filter_map(|hit| card_from_hit(hit, state)).collect();
+    let taken = debian_ids(&flat);
+    let debian = apt_cards(section, &taken, state);
+    interleave(flat, debian)
 }
 
 fn explore() -> Vec<Section> {
     let state = installed_state();
-    // Featured, popular and trending are Flathub's curated and measured
-    // lists; every category mixes all sources (see category_cards).
+    // Featured, popular and trending mix the lists of Flathub (when Flatpak
+    // is installed) with rankings of Debian apps; every category mixes all
+    // sources (see category_cards). The banner of each shares its slides out
+    // between the sources (see build_section).
     let mut specs: Vec<(&str, Option<&str>)> = vec![("featured", None), ("popular", None), ("trending", None)];
     for (id, main) in CATEGORIES {
         specs.push((id, Some(main)));
@@ -245,12 +424,12 @@ fn explore() -> Vec<Section> {
                 let state = &state;
                 scope.spawn(move || match (id, main) {
                     ("featured", _) => featured_section(state),
-                    (_, Some(main)) => build_section(id, category_cards(id, main, 30, state), BANNER_SLIDES, 6),
-                    _ => {
-                        let path = format!("collection/{id}");
-                        let cards = flathub::collection(&path, 15).iter().filter_map(|hit| card_from_hit(hit, state)).collect();
+                    (_, Some(main)) => {
+                        let mut cards = category_cards(id, main, 30, state);
+                        add_snaps(&mut cards, snaps_of(id), state);
                         build_section(id, cards, BANNER_SLIDES, 6)
                     }
+                    _ => build_section(id, list_cards(id, state), BANNER_SLIDES, 6),
                 })
             })
             .collect();
@@ -269,6 +448,7 @@ fn category(cat: &str) -> Section {
     };
     let mut cards = category_cards(cat, main, 48, &state);
     cards.truncate(150);
+    add_snaps(&mut cards, snaps_of(cat), &state);
     build_section(cat, cards, BANNER_SLIDES, usize::MAX)
 }
 
@@ -279,7 +459,7 @@ fn search(query: &str) -> Vec<AppCard> {
     }
     let state = installed_state();
     let (flathub_hits, apt_hits, snap_hits) = std::thread::scope(|scope| {
-        let f = scope.spawn(|| flathub::search(query));
+        let f = scope.spawn(|| if flatpak::available() { flathub::search(query) } else { Vec::new() });
         let a = scope.spawn(|| apt::search(query));
         let s = scope.spawn(|| snap::search(query));
         (f.join().unwrap_or_default(), a.join().unwrap_or_default(), s.join().unwrap_or_default())
@@ -384,7 +564,8 @@ fn detail(id: &str) -> Option<AppDetail> {
     if let Some(name) = id.strip_prefix("snap:") {
         return snap_detail(name, &state);
     }
-    let flat = flathub::app(id);
+    // Without Flatpak the page is made of what the other sources say.
+    let flat = if flatpak::available() { flathub::app(id) } else { None };
     let flathub_name = flat.as_ref().map(|app| flathub::str_field(app, "name")).unwrap_or_default();
     let apt_app = apt::find(id, &flathub_name);
     if flat.is_none() && apt_app.is_none() {
@@ -603,7 +784,8 @@ fn installed_apps() -> Vec<InstalledApp> {
     }
 
     // 6. AppImage apps from ~/AppImages.
-    for app in appimage::installed() {
+    let appimages = if settings::appimage_enabled() { appimage::installed() } else { Vec::new() };
+    for app in appimages {
         apps.push(InstalledApp {
             id: format!("appimage:{}", app.file),
             name: app.name,
@@ -625,19 +807,27 @@ pub struct SourceScan {
     pub label: &'static str,
     pub items: Vec<UpdateItem>,
     pub took: std::time::Duration,
+    /// Packages that come in and go out with the updates; only APT has them.
+    pub added: Vec<PlanChange>,
+    pub removed: Vec<PlanChange>,
 }
 
 fn timed(label: &'static str, find: impl FnOnce() -> Vec<UpdateItem>) -> SourceScan {
     let start = std::time::Instant::now();
     let items = find();
-    SourceScan { label, items, took: start.elapsed() }
+    SourceScan { label, items, took: start.elapsed(), added: Vec::new(), removed: Vec::new() }
 }
 
-fn apt_updates() -> Vec<UpdateItem> {
-    apt::upgradable()
+/// The updates apt would make, and the packages that come in and go out with them.
+fn apt_updates() -> (Vec<UpdateItem>, Vec<PlanChange>, Vec<PlanChange>) {
+    let plan = apt::pending();
+    let items = plan
+        .updates
         .into_iter()
         .map(|(package, from, to)| UpdateItem { id: package.clone(), name: package, icon: None, source: "apt".into(), from, to })
-        .collect()
+        .collect();
+    let change = |(name, version): (String, String)| PlanChange { name, version };
+    (items, plan.added.into_iter().map(change).collect(), plan.removed.into_iter().map(change).collect())
 }
 
 fn flatpak_updates() -> Vec<UpdateItem> {
@@ -692,10 +882,14 @@ fn firmware_updates() -> Vec<UpdateItem> {
 /// adds both when the list is shown.
 pub fn scan() -> Vec<SourceScan> {
     std::thread::scope(|scope| {
-        let apt = scope.spawn(|| Some(timed("APT", apt_updates)));
+        let apt = scope.spawn(|| {
+            let start = std::time::Instant::now();
+            let (items, added, removed) = apt_updates();
+            Some(SourceScan { label: "APT", items, took: start.elapsed(), added, removed })
+        });
         let flatpak = scope.spawn(|| flatpak::available().then(|| timed("Flatpak", flatpak_updates)));
         let snap = scope.spawn(|| snap::available().then(|| timed("Snap", snap_updates)));
-        let appimage = scope.spawn(|| appimage_update::any_checkable().then(|| timed("AppImage", appimage_updates)));
+        let appimage = scope.spawn(|| (settings::appimage_enabled() && appimage_update::any_checkable()).then(|| timed("AppImage", appimage_updates)));
         // With firmware turned off in Settings fwupd is not asked at all.
         let firmware = scope.spawn(|| (fwupd::available() && settings::firmware_enabled()).then(|| timed("Firmware", firmware_updates)));
         [apt, flatpak, snap, appimage, firmware].into_iter().filter_map(|handle| handle.join().ok().flatten()).collect()
@@ -733,7 +927,7 @@ fn decorate(mut items: Vec<UpdateItem>) -> Vec<UpdateItem> {
 fn updates_view(force: bool) -> UpdatesView {
     let stored = if force { None } else { checker::read().filter(|s| s.items.is_some()) };
     let stored = stored.unwrap_or_else(checker::scan_and_store);
-    UpdatesView { checked_at: stored.checked_at, items: decorate(stored.items.unwrap_or_default()) }
+    UpdatesView { checked_at: stored.checked_at, items: decorate(stored.items.unwrap_or_default()), added: stored.added, removed: stored.removed }
 }
 
 #[tauri::command]
@@ -797,9 +991,9 @@ pub async fn reload_apt() {
 #[tauri::command]
 pub async fn get_sources_status() -> Option<SourcesStatus> {
     tauri::async_runtime::spawn_blocking(|| SourcesStatus {
-        flatpak: flatpak::available(),
+        flatpak: flatpak::present(),
         flathub: flatpak::flathub_scope(),
-        snap: snap::available(),
+        snap: snap::present(),
         repo_selector: system::has_command("soplos-repo-selector"),
         appimage_manager: system::has_command("soplos-appimage-manager"),
         fwupd: fwupd::available(),

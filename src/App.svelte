@@ -5,6 +5,7 @@
   import { Compass, Cpu, LayoutGrid, Package, RefreshCw, SlidersHorizontal } from "lucide-svelte";
   import { api } from "./lib/api";
   import { busy } from "./lib/busy";
+  import { settings } from "./lib/settings";
   import { searchRequest } from "./lib/search";
   import { languageChanged } from "./i18n";
   import Sidebar from "./components/Sidebar.svelte";
@@ -25,7 +26,7 @@
   import Settings from "./views/Settings.svelte";
 
   // The footer never shows the package revision, only the base version.
-  const FOOTER_VERSION = "3.0.0-beta";
+  const FOOTER_VERSION = "3.0.1-beta";
 
   const tabs = [
     { id: "explore", icon: Compass },
@@ -48,6 +49,11 @@
   let scroller: HTMLDivElement;
   let unlisten: UnlistenFn | null = null;
   let unlistenUpdates: UnlistenFn | null = null;
+
+  // Drivers can be turned off in Settings; if it is open when it is, the app
+  // goes back to Explore.
+  $: shownTabs = tabs.filter((tab) => tab.id !== "drivers" || $settings.showDrivers);
+  $: if (!$settings.showDrivers && active === "drivers") selectTab("explore");
 
   $: page = stack[stack.length - 1];
   $: footerLabel = [envLabel, FOOTER_VERSION].filter(Boolean).join(" · ");
@@ -134,8 +140,8 @@
     } else if (e.ctrlKey && e.code === "Tab") {
       e.preventDefault();
       const direction = e.shiftKey ? -1 : 1;
-      const index = tabs.findIndex((t) => t.id === active);
-      selectTab(tabs[(index + direction + tabs.length) % tabs.length].id);
+      const index = shownTabs.findIndex((t) => t.id === active);
+      selectTab(shownTabs[(index + direction + shownTabs.length) % shownTabs.length].id);
     }
   }
 
@@ -165,7 +171,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="flex h-screen overflow-hidden">
-  <Sidebar {tabs} {active} onSelect={selectTab} {footerLabel} onAbout={() => (aboutOpen = true)} />
+  <Sidebar tabs={shownTabs} {active} onSelect={selectTab} {footerLabel} onAbout={() => (aboutOpen = true)} />
 
   <div class="flex-1 flex flex-col overflow-hidden min-w-0">
     <div class="content-scroll flex-1 overflow-y-auto p-7" bind:this={scroller}>

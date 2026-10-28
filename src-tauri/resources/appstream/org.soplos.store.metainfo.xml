@@ -281,6 +281,15 @@
   </developer>
 
   <releases>
+    <release version="3.0.1-beta" date="2026-10-28">
+      <description>
+        <p>Updates held back by apt because of their dependencies are no longer listed, and a package that needs a renamed library replaced is now shown, with what goes out and what comes in, and can be installed.</p>
+        <p>Each update button has its own progress line, read from what apt reports for that package, and the bar with the actions stays at the top of a long list.</p>
+        <p>The home page and the banners now take apps from every source you have, APT, Flatpak and Snap, and nothing from Flathub or the Snap Store when that source is not installed.</p>
+        <p>New switches in Settings to show or hide Flatpak, Snap and AppImage, the Featured, Popular and Trending sections, and the Drivers section.</p>
+        <p>The Flatpak install scope is only asked when Flathub is set up for both the user and the system; with only one of them, the app is installed there without asking.</p>
+      </description>
+    </release>
     <release version="3.0.0-9-beta" date="2026-10-24">
       <description>
         <p>Settings flows into two columns on a wide window and the page of a package file uses the whole width, so a maximized window is no longer left half empty.</p>

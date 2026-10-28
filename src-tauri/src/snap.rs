@@ -24,10 +24,19 @@ pub struct StoreSnap {
     pub title: String,
     pub summary: String,
     pub icon: Option<String>,
+    /// The first screenshot the snap has, for the banners.
+    pub screenshot: Option<String>,
 }
 
-pub fn available() -> bool {
+/// Whether the snap command is installed.
+pub fn present() -> bool {
     system::has_command("snap")
+}
+
+/// Whether the Store works with Snap: it is installed and not turned off in
+/// Settings.
+pub fn available() -> bool {
+    present() && crate::settings::snap_enabled()
 }
 
 pub fn installed() -> Vec<Installed> {
@@ -86,15 +95,9 @@ fn media(snap: &Value, kind: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-pub fn search(query: &str) -> Vec<StoreSnap> {
-    if !available() {
-        return Vec::new();
-    }
-    let url = format!("{STORE}find?q={}&fields=title,summary,media", encode(query));
-    let Some(data) = http::get(&url, HEADERS) else {
-        return Vec::new();
-    };
-    let Ok(json) = serde_json::from_slice::<Value>(&data) else {
+/// The snaps of an answer of the "find" call of the Snap Store.
+fn parse_results(data: &[u8], limit: usize) -> Vec<StoreSnap> {
+    let Ok(json) = serde_json::from_slice::<Value>(data) else {
         return Vec::new();
     };
     json.get("results")
@@ -109,13 +112,33 @@ pub fn search(query: &str) -> Vec<StoreSnap> {
                         title: snap.get("title").and_then(|t| t.as_str()).unwrap_or(&name).to_string(),
                         summary: snap.get("summary").and_then(|s| s.as_str()).unwrap_or("").to_string(),
                         icon: media(snap, "icon").into_iter().next(),
+                        screenshot: media(snap, "screenshot").into_iter().next(),
                         name,
                     })
                 })
-                .take(20)
+                .take(limit)
                 .collect()
         })
         .unwrap_or_default()
+}
+
+pub fn search(query: &str) -> Vec<StoreSnap> {
+    if !available() {
+        return Vec::new();
+    }
+    let url = format!("{STORE}find?q={}&fields=title,summary,media", encode(query));
+    http::get(&url, HEADERS).map(|data| parse_results(&data, 20)).unwrap_or_default()
+}
+
+/// The snaps of one category of the Snap Store ("featured", "games"...), in
+/// the order the store gives them. Empty without snapd or when the store
+/// does not answer.
+pub fn category(name: &str) -> Vec<StoreSnap> {
+    if !available() {
+        return Vec::new();
+    }
+    let url = format!("{STORE}find?category={}&fields=title,summary,media", encode(name));
+    http::cached(&url, "snap", Duration::from_secs(6 * 3600), HEADERS).map(|data| parse_results(&data, 30)).unwrap_or_default()
 }
 
 /// Store data of one snap, or None when no snap has that name.

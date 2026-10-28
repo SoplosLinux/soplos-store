@@ -16,8 +16,15 @@ pub struct Installed {
     pub scope: String,
 }
 
-pub fn available() -> bool {
+/// Whether the flatpak command is installed.
+pub fn present() -> bool {
     system::has_command("flatpak")
+}
+
+/// Whether the Store works with Flatpak: it is installed and not turned off
+/// in Settings.
+pub fn available() -> bool {
+    present() && crate::settings::flatpak_enabled()
 }
 
 pub fn installed() -> Vec<Installed> {

@@ -366,9 +366,102 @@ pub fn installed_packages() -> InstalledMap {
     data
 }
 
-/// Upgradable packages as (name, installed version, new version), from
-/// the lists of the last "apt update".
-pub fn upgradable() -> Vec<(String, String, String)> {
+/// Solver the plan is made with. The `apt` command uses the 3.0 solver, which
+/// holds back an upgrade that needs a package to be replaced (a renamed
+/// library, say); the older "internal" solver replaces it. That is the one
+/// PackageKit uses, so it is the plan GNOME Software shows. Switching solver
+/// is changing this one value.
+pub const SOLVER_OPTION: &str = "APT::Solver=internal";
+
+/// What a simulated upgrade would do, read from the "Inst" and "Remv" lines
+/// apt prints (those lines are the same in every language).
+#[derive(Debug, Default)]
+pub struct UpgradePlan {
+    /// Installed packages that get a new version: (name, installed version, new version).
+    pub updates: Vec<(String, String, String)>,
+    /// Packages that are not installed and would come in: (name, version).
+    pub added: Vec<(String, String)>,
+    /// Installed packages that would go: (name, installed version).
+    pub removed: Vec<(String, String)>,
+}
+
+/// Name as the rest of the app knows it: without the ":arch" apt adds to
+/// packages of another architecture.
+fn plain_name(name: &str) -> String {
+    name.split(':').next().unwrap_or(name).to_string()
+}
+
+/// First word of what follows "(" in an "Inst" line: the new version.
+fn new_version(tail: &str) -> String {
+    tail.split_whitespace().next().unwrap_or("").to_string()
+}
+
+fn parse_plan(output: &str) -> UpgradePlan {
+    let mut plan = UpgradePlan::default();
+    for line in output.lines() {
+        if let Some(rest) = line.strip_prefix("Inst ") {
+            let Some((name, rest)) = rest.split_once(' ') else {
+                continue;
+            };
+            if let Some(after) = rest.strip_prefix('[') {
+                // Inst nano [9.2-1] (9.3-1 Debian:testing [amd64])
+                if let Some((old, tail)) = after.split_once("] (") {
+                    plan.updates.push((plain_name(name), old.to_string(), new_version(tail)));
+                }
+            } else if let Some(tail) = rest.strip_prefix('(') {
+                // Inst libavcodec-extra63 (7:9.0.2-4 Debian:testing [amd64])
+                plan.added.push((plain_name(name), new_version(tail)));
+            }
+        } else if let Some(rest) = line.strip_prefix("Remv ") {
+            // Remv libavcodec63 [7:9.0.2-4] [packages that depend on it]
+            let Some((name, rest)) = rest.split_once(' ') else {
+                continue;
+            };
+            let old = rest.strip_prefix('[').and_then(|r| r.split_once(']')).map(|(version, _)| version).unwrap_or("");
+            plan.removed.push((plain_name(name), old.to_string()));
+        }
+    }
+    plan
+}
+
+/// The plan of `apt-get -s <args>`; None when apt could not make one.
+fn simulate(args: &[&str]) -> Option<UpgradePlan> {
+    let mut full = vec!["-s", "-o", SOLVER_OPTION];
+    full.extend_from_slice(args);
+    system::output("apt-get", &full).map(|out| parse_plan(&out))
+}
+
+/// The plan of a full upgrade of the system.
+pub fn upgrade_plan() -> Option<UpgradePlan> {
+    simulate(&["dist-upgrade"])
+}
+
+/// The plan of upgrading only these packages.
+pub fn install_plan(packages: &[String]) -> Option<UpgradePlan> {
+    let mut args = vec!["install", "--only-upgrade"];
+    args.extend(packages.iter().map(String::as_str));
+    simulate(&args)
+}
+
+/// What the lists of the last "apt update" ask for: the packages to upgrade
+/// as (name, installed version, new version), and the ones that come in and go
+/// out with them. Only what the plan of a full upgrade upgrades is listed: the
+/// others are held back by dependencies, cannot be installed and only make the
+/// notification come back. When apt cannot make a plan the updates are the ones
+/// apt prints, and nothing comes in or goes out.
+pub fn pending() -> UpgradePlan {
+    match upgrade_plan() {
+        Some(mut plan) => {
+            plan.updates.sort();
+            plan.added.sort();
+            plan.removed.sort();
+            plan
+        }
+        None => UpgradePlan { updates: listed_upgradable(), ..Default::default() },
+    }
+}
+
+fn listed_upgradable() -> Vec<(String, String, String)> {
     let Some(out) = system::output("apt", &["list", "--upgradable"]) else {
         return Vec::new();
     };
@@ -411,4 +504,79 @@ pub fn search(query: &str) -> Vec<&'static AptApp> {
 /// Apps whose AppStream categories include `category` (e.g. "Graphics").
 pub fn in_category(category: &str) -> Vec<&'static AptApp> {
     index().values().filter(|app| app.categories.iter().any(|c| c == category)).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // `apt-get -s -o APT::Solver=internal dist-upgrade` on a Debian testing
+    // machine where libavcodec-extra needs its library replaced and
+    // gnome-shell-extension-prefs is held back.
+    const INTERNAL: &str = "\
+Remv libavcodec63 [7:9.0.2-4] [libavdevice63:amd64 ffmpeg:amd64 ]
+Inst libavcodec-extra63 (7:9.0.2-4 Debian:testing [amd64])
+Inst nano [9.2-1] (9.3-1 Debian:testing [amd64])
+Inst firmware-qcom-dsp [0~20260916-2] (0~20261019-1 Debian:testing [all])
+Inst libavcodec-extra [7:8.1.2-2+b3] (7:9.0.2-4 Debian:testing [amd64])
+Conf libavcodec-extra63 (7:9.0.2-4 Debian:testing [amd64])
+Conf nano (9.3-1 Debian:testing [amd64])
+Conf firmware-qcom-dsp (0~20261019-1 Debian:testing [all])
+Conf libavcodec-extra (7:9.0.2-4 Debian:testing [amd64])
+";
+
+    // The same machine with the 3.0 solver: both packages are held back.
+    const SOLVER_3: &str = "\
+Inst nano [9.2-1] (9.3-1 Debian:testing [amd64])
+Inst firmware-qcom-dsp [0~20260916-2] (0~20261019-1 Debian:testing [all])
+Conf nano (9.3-1 Debian:testing [amd64])
+Conf firmware-qcom-dsp (0~20261019-1 Debian:testing [all])
+";
+
+    #[test]
+    fn an_upgrade_has_the_installed_and_the_new_version() {
+        let plan = parse_plan(INTERNAL);
+        assert_eq!(plan.updates.len(), 3);
+        assert!(plan.updates.contains(&("nano".into(), "9.2-1".into(), "9.3-1".into())));
+        assert!(plan.updates.contains(&("libavcodec-extra".into(), "7:8.1.2-2+b3".into(), "7:9.0.2-4".into())));
+    }
+
+    #[test]
+    fn a_package_that_comes_in_is_added_not_upgraded() {
+        let plan = parse_plan(INTERNAL);
+        assert_eq!(plan.added, vec![("libavcodec-extra63".to_string(), "7:9.0.2-4".to_string())]);
+        assert!(!plan.updates.iter().any(|(name, _, _)| name == "libavcodec-extra63"));
+    }
+
+    #[test]
+    fn a_package_that_goes_is_removed_with_its_version() {
+        let plan = parse_plan(INTERNAL);
+        assert_eq!(plan.removed, vec![("libavcodec63".to_string(), "7:9.0.2-4".to_string())]);
+    }
+
+    #[test]
+    fn a_held_back_package_is_in_no_list() {
+        for output in [INTERNAL, SOLVER_3] {
+            let plan = parse_plan(output);
+            assert!(!plan.updates.iter().any(|(name, _, _)| name == "gnome-shell-extension-prefs"));
+            assert!(!plan.added.iter().any(|(name, _)| name == "gnome-shell-extension-prefs"));
+            assert!(!plan.removed.iter().any(|(name, _)| name == "gnome-shell-extension-prefs"));
+        }
+        let plan = parse_plan(SOLVER_3);
+        assert_eq!(plan.updates.len(), 2);
+        assert!(!plan.updates.iter().any(|(name, _, _)| name == "libavcodec-extra"));
+        assert!(plan.added.is_empty() && plan.removed.is_empty());
+    }
+
+    #[test]
+    fn the_architecture_of_another_package_is_dropped_from_its_name() {
+        let plan = parse_plan("Inst libc6:i386 [2.43-6] (2.43-7 Debian:testing [i386])\n");
+        assert_eq!(plan.updates, vec![("libc6".to_string(), "2.43-6".to_string(), "2.43-7".to_string())]);
+    }
+
+    #[test]
+    fn lines_that_are_not_part_of_the_plan_are_ignored() {
+        let plan = parse_plan("NOTE: This is only a simulation!\nConf nano (9.3-1 Debian:testing [amd64])\n\n");
+        assert!(plan.updates.is_empty() && plan.added.is_empty() && plan.removed.is_empty());
+    }
 }

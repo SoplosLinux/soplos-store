@@ -2,6 +2,37 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.1-beta] - 2026-10-28
+
+### Added
+
+- Settings: a switch to show each source in the Store (Flatpak, Snap and AppImage), on by default. With one off, the Store shows nothing of that source (catalog, installed apps and updates), does not look for its updates and does not count them in the tray, for whoever means to use another way to install and update it.
+- Settings: a switch for the Drivers section of the sidebar, off by default until Drivers is finished. The app goes back to Explore if it is turned off while Drivers is open.
+- Settings: a "Home page" block with a switch for each of the Featured, Popular and Trending sections. A section that is turned off disappears from Explore.
+- Updates: two blocks over the list, "Removed" and "Added", for the packages that go out and come in with the updates, as GNOME Software shows them (a renamed library, for example, is replaced). They are only told: nothing is selected for them. They are kept in `~/.cache/soplos-store/updates.json` with the result of the check.
+- Home page: the featured snaps of the Snap Store take part in Featured, and the snaps of the Snap Store categories that match each category of the Store appear in them, only with snapd installed. They come with their icon and first screenshot.
+
+### Changed
+
+- Updates: the list is what apt would upgrade, the way PackageKit and GNOME Software see it, which is the older solver of apt (`APT::Solver=internal`) and not the 3.0 one that the `apt` command uses. Updates that apt holds back because of their dependencies, such as `gnome-shell-extension-prefs`, are no longer listed or counted, so the tray notification does not come back for them. When apt cannot make that plan, the list is the one `apt list --upgradable` prints.
+- The root helper no longer upgrades with `--no-remove`. It works out the plan of a full upgrade itself, simulates the upgrade that was asked for and refuses it if it would remove anything that plan does not remove, so a package that needs a renamed library replaced (`libavcodec-extra`) can be installed and nothing else can be taken out.
+- Updates: the bar with "Check now" and "Update all" stays at the top while the list scrolls.
+- Updates: each button has its own line along its lower edge. For APT it counts the steps of that package, its download (2) and the six steps of dpkg, read from the status lines apt writes with `APT::Status-Fd`, which are the same in every language. The bar across the whole row is gone. Where a tool does not say how far it is (Flatpak, Snap, several firmware devices at once) the button only shows the stage and has no line.
+- Home page: Featured, Popular and Trending mix the lists of Flathub, only when Flatpak is installed, with rankings of Debian apps made with the ODRS ratings, which come from users of every distribution: Featured is the best rated with a minimum of 20 reviews, Popular the most reviewed and Trending the apps with a version released in the last 30 days. The banner of every section and category shares its slides out between APT, Flatpak and Snap, taking the apps with a screenshot of each in turn, and the first ones of each source take turns week by week. Before, the banners came almost all from Flathub.
+- Without Flatpak, Flathub is not asked at all: not for the home page, the categories, the search or the app pages, which are made of what the other sources say. The same goes for Snap.
+- Settings: the Recommendations block was replaced by the "Home page" one.
+- The package now depends on `appstream`, which makes apt download the AppStream data of Debian that the catalog is built from, and on `packagekit`.
+
+### Removed
+
+- Settings: the switches "Featured and trending apps", "Ratings and reviews (ODRS)", "Show proprietary software", "Show all packages" and "Update Flatpak apps automatically". None of them did anything.
+
+### Fixed
+
+- The progress of APT updates never moved in languages other than English, because it looked for English words in the output of apt. It now reads the status lines, and those lines no longer show in the log.
+- A package that apt could not install was listed anyway: updating `libavcodec-extra` did nothing and left it in the list, and the held back ones made the notification come back at every check.
+- Flatpak install scope: Settings offered "User", "System" and "Ask every time" even when Flathub is set up in one installation only, and the install used that choice without looking. Now, with Flathub in only one of the two, Settings shows it as text and the app is installed there without asking, as Soplos Welcome 3.0 does; with Flathub in both, the choice in Settings is used, and "Ask every time" still asks.
+
 ## [3.0.0-9-beta] - 2026-10-24
 
 ### Fixed

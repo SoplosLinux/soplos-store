@@ -7,6 +7,7 @@
   import { showToast } from "../lib/toast";
   import { jobs, runJob, type JobRequest } from "../lib/jobs";
   import Toggle from "../components/Toggle.svelte";
+  import { clearExploreCache } from "./Explore.svelte";
 
   let status: SourcesStatus | null = null;
   let launchError = "";
@@ -19,6 +20,8 @@
     if (now !== lastSaved) {
       lastSaved = now;
       saved();
+      // What the home page shows depends on the sources and sections chosen here.
+      clearExploreCache();
     }
   }
 
@@ -108,17 +111,26 @@
         </div>
         <div class="settings-desc">{status && !status.flatpak ? $_("settings.flatpakMissing") : $_("settings.flatpakDesc")}</div>
       </div>
-      {#if status && !status.flatpak}
-        <button class={primaryClass} disabled={busyWith("flatpak")} on:click={() => installPackage("flatpak", "Flatpak")}>
-          {busyWith("flatpak") ? $_("common.installing") : $_("settings.installFlatpak")}
-        </button>
-      {:else}
-        <select class={selectClass} title={$_("settings.scope")} bind:value={$settings.flatpakScope}>
-          <option value="user">{$_("settings.scopeUser")}</option>
-          <option value="system">{$_("settings.scopeSystem")}</option>
-          <option value="ask">{$_("settings.scopeAsk")}</option>
-        </select>
-      {/if}
+      <div class="flex items-center gap-3">
+        {#if status && !status.flatpak}
+          <button class={primaryClass} disabled={busyWith("flatpak")} on:click={() => installPackage("flatpak", "Flatpak")}>
+            {busyWith("flatpak") ? $_("common.installing") : $_("settings.installFlatpak")}
+          </button>
+        {:else if status?.flathub === "user" || status?.flathub === "system"}
+          <!-- Flathub is set up in one installation only: there is nothing to choose -->
+          <span class="text-[0.78rem] text-text-bright" title={$_("settings.scope")}>
+            {status.flathub === "user" ? $_("settings.scopeUser") : $_("settings.scopeSystem")}
+          </span>
+        {:else}
+          <select class={selectClass} title={$_("settings.scope")} bind:value={$settings.flatpakScope}>
+            <option value="user">{$_("settings.scopeUser")}</option>
+            <option value="system">{$_("settings.scopeSystem")}</option>
+            <option value="ask">{$_("settings.scopeAsk")}</option>
+          </select>
+        {/if}
+        <span class="text-[0.75rem] text-text-muted">{$_("settings.showInStore")}</span>
+        <Toggle bind:checked={$settings.showFlatpak} label={$_("settings.showInStore")} disabled={!status?.flatpak} />
+      </div>
     </div>
     <div class="settings-row">
       <div>
@@ -130,11 +142,15 @@
         </div>
         <div class="settings-desc">{$_("settings.snapDesc")}</div>
       </div>
-      {#if status && !status.snap}
-        <button class={primaryClass} disabled={busyWith("snapd")} on:click={() => installPackage("snapd", "snapd")}>
-          {busyWith("snapd") ? $_("common.installing") : $_("settings.installSnapd")}
-        </button>
-      {/if}
+      <div class="flex items-center gap-3">
+        {#if status && !status.snap}
+          <button class={primaryClass} disabled={busyWith("snapd")} on:click={() => installPackage("snapd", "snapd")}>
+            {busyWith("snapd") ? $_("common.installing") : $_("settings.installSnapd")}
+          </button>
+        {/if}
+        <span class="text-[0.75rem] text-text-muted">{$_("settings.showInStore")}</span>
+        <Toggle bind:checked={$settings.showSnap} label={$_("settings.showInStore")} disabled={!status?.snap} />
+      </div>
     </div>
     <div class="settings-row">
       <div>
@@ -179,20 +195,17 @@
         </div>
         <div class="settings-desc">{$_("settings.appimageDesc")}</div>
       </div>
-      {#if status && !status.appimageManager}
-        <button class={primaryClass} disabled={busyWith("soplos-appimage-manager")} on:click={() => installPackage("soplos-appimage-manager", "Soplos AppImage Manager")}>
-          {busyWith("soplos-appimage-manager") ? $_("common.installing") : `${$_("common.install")} Soplos AppImage Manager`}
-        </button>
-      {:else}
-        <button class={ghostClass} on:click={() => launch("soplos-appimage-manager", "Soplos AppImage Manager")}>{$_("common.open")}</button>
-      {/if}
-    </div>
-    <div class="settings-row">
-      <div>
-        <div class="settings-label">{$_("settings.allPackages")}</div>
-        <div class="settings-desc">{$_("settings.allPackagesDesc")}</div>
+      <div class="flex items-center gap-3">
+        {#if status && !status.appimageManager}
+          <button class={primaryClass} disabled={busyWith("soplos-appimage-manager")} on:click={() => installPackage("soplos-appimage-manager", "Soplos AppImage Manager")}>
+            {busyWith("soplos-appimage-manager") ? $_("common.installing") : `${$_("common.install")} Soplos AppImage Manager`}
+          </button>
+        {:else}
+          <button class={ghostClass} on:click={() => launch("soplos-appimage-manager", "Soplos AppImage Manager")}>{$_("common.open")}</button>
+        {/if}
+        <span class="text-[0.75rem] text-text-muted">{$_("settings.showInStore")}</span>
+        <Toggle bind:checked={$settings.showAppimage} label={$_("settings.showInStore")} disabled={!status?.appimageManager} />
       </div>
-      <Toggle bind:checked={$settings.showAllPackages} label={$_("settings.allPackages")} />
     </div>
   </section>
 
@@ -208,6 +221,13 @@
         <option value="light">{$_("settings.themeLight")}</option>
         <option value="dark">{$_("settings.themeDark")}</option>
       </select>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">{$_("nav.drivers")}</div>
+        <div class="settings-desc">{$_("settings.driversSectionDesc")}</div>
+      </div>
+      <Toggle bind:checked={$settings.showDrivers} label={$_("nav.drivers")} />
     </div>
   </section>
 
@@ -237,28 +257,30 @@
       </div>
       <Toggle bind:checked={$settings.notify} label={$_("settings.notify")} />
     </div>
-    <div class="settings-row">
-      <div class="settings-label">{$_("settings.flatpakAuto")}</div>
-      <Toggle bind:checked={$settings.flatpakAutoUpdate} label={$_("settings.flatpakAuto")} />
-    </div>
   </section>
 
   <section class="bg-surface border border-border rounded px-4 py-1.5 xl:mb-3.5 xl:break-inside-avoid">
-    <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.recommendations")}</h3>
+    <h3 class="text-[0.95rem] font-semibold text-text-bright pt-3 pb-1.5">{$_("settings.home")}</h3>
     <div class="settings-row">
       <div>
-        <div class="settings-label">{$_("settings.featured")}</div>
-        <div class="settings-desc">{$_("settings.featuredDesc")}</div>
+        <div class="settings-label">{$_("sections.featured")}</div>
+        <div class="settings-desc">{$_("settings.homeSectionDesc")}</div>
       </div>
-      <Toggle bind:checked={$settings.featured} label={$_("settings.featured")} />
+      <Toggle bind:checked={$settings.showFeatured} label={$_("sections.featured")} />
     </div>
     <div class="settings-row">
-      <div class="settings-label">{$_("settings.ratings")}</div>
-      <Toggle bind:checked={$settings.ratings} label={$_("settings.ratings")} />
+      <div>
+        <div class="settings-label">{$_("sections.popular")}</div>
+        <div class="settings-desc">{$_("settings.homeSectionDesc")}</div>
+      </div>
+      <Toggle bind:checked={$settings.showPopular} label={$_("sections.popular")} />
     </div>
     <div class="settings-row">
-      <div class="settings-label">{$_("settings.proprietary")}</div>
-      <Toggle bind:checked={$settings.proprietary} label={$_("settings.proprietary")} />
+      <div>
+        <div class="settings-label">{$_("sections.trending")}</div>
+        <div class="settings-desc">{$_("settings.homeSectionDesc")}</div>
+      </div>
+      <Toggle bind:checked={$settings.showTrending} label={$_("sections.trending")} />
     </div>
   </section>
 

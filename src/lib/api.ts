@@ -115,9 +115,17 @@ export interface PackageSet {
   installed: boolean;
 }
 
-/** The updates of the last check and when it was made (epoch seconds). */
+/** A package that comes in or goes out together with the updates (a renamed library, say). */
+export interface PlanChange {
+  name: string;
+  version: string;
+}
+
+/** The updates of the last check, what comes in and goes out with them, and when it was made (epoch seconds). */
 export interface UpdatesView {
   items: UpdateItem[];
+  added: PlanChange[];
+  removed: PlanChange[];
   checkedAt: number;
 }
 

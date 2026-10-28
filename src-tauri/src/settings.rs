@@ -17,11 +17,25 @@ pub struct Settings {
     /// Whether firmware (fwupd) updates are looked for at all. Turned off
     /// when the LVFS is unreachable and its answers hold the checks up.
     pub firmware_updates: bool,
+    /// Whether each source is shown at all. Turned off, the Store shows
+    /// nothing of it (catalog, installed apps, updates) and does not look for
+    /// its updates: the user means to use another way for that source.
+    pub show_flatpak: bool,
+    pub show_snap: bool,
+    pub show_appimage: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { auto_check: true, frequency: "daily".into(), notify: true, firmware_updates: true }
+        Settings {
+            auto_check: true,
+            frequency: "daily".into(),
+            notify: true,
+            firmware_updates: true,
+            show_flatpak: true,
+            show_snap: true,
+            show_appimage: true,
+        }
     }
 }
 
@@ -55,6 +69,21 @@ pub fn load() -> Settings {
 /// Whether firmware updates are turned on in Settings (the default).
 pub fn firmware_enabled() -> bool {
     load().firmware_updates
+}
+
+/// Whether Flatpak is turned on in Settings (the default).
+pub fn flatpak_enabled() -> bool {
+    load().show_flatpak
+}
+
+/// Whether Snap is turned on in Settings (the default).
+pub fn snap_enabled() -> bool {
+    load().show_snap
+}
+
+/// Whether AppImage is turned on in Settings (the default).
+pub fn appimage_enabled() -> bool {
+    load().show_appimage
 }
 
 fn user_config_dir() -> Option<PathBuf> {

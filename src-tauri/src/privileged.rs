@@ -7,7 +7,7 @@
 
 use std::process::Command;
 
-use crate::{nvidia, validate, vendor};
+use crate::{apt, nvidia, validate, vendor};
 
 /// Entry point for `--privileged-refresh`, run as root through pkexec with
 /// allow_active=yes. Exclusively runs `apt-get update` with no package arguments.
@@ -82,7 +82,12 @@ pub fn run(args: &[String]) -> i32 {
         // behind the user's back; apt stops instead.
         "apt-install" if all_packages => args_with(&["install", "-y", "--no-remove"], rest),
         "apt-remove" if all_packages => args_with(&["remove", "-y"], rest),
-        "apt-upgrade" if all_packages => args_with(&["install", "-y", "--no-remove", "--only-upgrade"], rest),
+        // Upgrades follow the plan of the solver instead of --no-remove: see upgrade_args.
+        "apt-upgrade" if all_packages => match upgrade_args(rest) {
+            Ok(Some(args)) => args,
+            Ok(None) => return 0,
+            Err(code) => return code,
+        },
         "apt-install-file" if rest.len() == 1 && validate::package_file(&rest[0], &["deb"]) => {
             args_with(&["install", "-y", "--no-remove"], rest)
         }
@@ -98,8 +103,11 @@ pub fn run(args: &[String]) -> i32 {
     // -q=0: when its output is not a terminal apt turns quiet mode on by
     // itself and never prints the final "Done" of each step, so the log in
     // the window would end on "Reading package lists..." and look unfinished.
+    // APT::Status-Fd=1: apt also writes "dlstatus:" and "pmstatus:" lines, the
+    // same in every language, which the window reads for the progress of each
+    // package (see updateProgress.ts).
     let mut apt = Command::new("apt-get");
-    apt.arg("-q=0").args(&apt_args).env("DEBIAN_FRONTEND", "noninteractive");
+    apt.arg("-q=0").args(["-o", "APT::Status-Fd=1"]).args(&apt_args).env("DEBIAN_FRONTEND", "noninteractive");
     if let Some(locale) = locale {
         apt.env("LANG", locale);
     }
@@ -132,6 +140,32 @@ fn run_script(script: &str, lang: Option<&str>, locale: Option<&str>) -> i32 {
             1
         }
     }
+}
+
+/// Arguments for upgrading packages the way the plan of the solver says. The
+/// helper makes the plan itself instead of trusting the window: a package that
+/// is not in it is skipped, and the upgrade is refused when it would remove
+/// anything the plan does not remove (a renamed library is replaced, nothing
+/// else goes). Ok(None) means there is nothing to upgrade.
+fn upgrade_args(requested: &[String]) -> Result<Option<Vec<String>>, i32> {
+    let Some(plan) = apt::upgrade_plan() else {
+        eprintln!("soplos-store: could not work out the upgrade");
+        return Err(1);
+    };
+    let ids: Vec<String> = requested.iter().filter(|name| plan.updates.iter().any(|(n, _, _)| n == *name)).cloned().collect();
+    if ids.is_empty() {
+        eprintln!("soplos-store: nothing to upgrade");
+        return Ok(None);
+    }
+    let Some(simulated) = apt::install_plan(&ids) else {
+        eprintln!("soplos-store: could not work out the upgrade of {}", ids.join(" "));
+        return Err(1);
+    };
+    if let Some((name, _)) = simulated.removed.iter().find(|(name, _)| !plan.removed.iter().any(|(n, _)| n == name)) {
+        eprintln!("soplos-store: refused, the upgrade would also remove {name}");
+        return Err(2);
+    }
+    Ok(Some(args_with(&["install", "-y", "-o", apt::SOLVER_OPTION, "--only-upgrade"], &ids)))
 }
 
 fn args_with(fixed: &[&str], rest: &[String]) -> Vec<String> {

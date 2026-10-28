@@ -116,12 +116,24 @@ pub struct UpdateItem {
     pub to: String,
 }
 
-/// What the Updates page shows: the updates found by the last check and
-/// when that check was made (seconds since the Unix epoch).
+/// A package that comes in or goes out together with the updates (a renamed
+/// library, say). It is only told to the user: nothing is selected for it.
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PlanChange {
+    pub name: String,
+    pub version: String,
+}
+
+/// What the Updates page shows: the updates found by the last check, the
+/// packages that come in and go out with them, and when that check was made
+/// (seconds since the Unix epoch).
 #[derive(Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatesView {
     pub items: Vec<UpdateItem>,
+    pub added: Vec<PlanChange>,
+    pub removed: Vec<PlanChange>,
     pub checked_at: u64,
 }
 
