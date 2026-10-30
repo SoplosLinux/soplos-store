@@ -1,4 +1,12 @@
 {
+  "app": {
+    "window": {
+      "minimize": "Réduire",
+      "maximize": "Agrandir",
+      "restore": "Restaurer",
+      "close": "Fermer"
+    }
+  },
   "nav": {
     "explore": "Explorer",
     "categories": "Catégories",

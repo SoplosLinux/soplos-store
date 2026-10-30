@@ -17,7 +17,7 @@
   }
 </script>
 
-<aside class="w-[230px] shrink-0 flex flex-col pt-[18px] px-[10px] pb-2 bg-panel border-r border-border">
+<aside class="w-[230px] shrink-0 flex flex-col pt-[18px] px-[10px] pb-2 bg-panel border-r border-border" data-tauri-drag-region>
   <div class="flex items-center gap-2 px-3 pb-[22px] font-bold text-[0.98rem] text-text-bright">
     <img src={logo} alt="" class="w-[28px] h-[28px] object-contain shrink-0" />
     <span class="leading-tight">Soplos Store</span>

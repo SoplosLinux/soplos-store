@@ -1,4 +1,12 @@
 {
+  "app": {
+    "window": {
+      "minimize": "Minimizează",
+      "maximize": "Maximizează",
+      "restore": "Restaurează",
+      "close": "Închide"
+    }
+  },
   "nav": {
     "explore": "Explorează",
     "categories": "Categorii",

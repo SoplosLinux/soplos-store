@@ -166,14 +166,22 @@
     unlisten?.();
     unlistenUpdates?.();
   });
+  import WindowControls from "./components/WindowControls.svelte";
+  import { frameless, maximized } from "./lib/window";
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="flex h-screen overflow-hidden">
+<div class="h-screen bg-dark {$frameless && !$maximized ? 'window-card' : ''}">
+<div class="flex h-full overflow-hidden">
   <Sidebar tabs={shownTabs} {active} onSelect={selectTab} {footerLabel} onAbout={() => (aboutOpen = true)} />
 
   <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+    {#if $frameless}
+      <div class="relative h-7 shrink-0" data-tauri-drag-region>
+        <div class="absolute right-2 top-[3px]"><WindowControls /></div>
+      </div>
+    {/if}
     <div class="content-scroll flex-1 overflow-y-auto p-7" bind:this={scroller}>
       {#key refreshKey}
         {#if page?.kind === "app"}
@@ -220,3 +228,4 @@
 {/if}
 <ScopeDialog />
 <Toast />
+</div>
