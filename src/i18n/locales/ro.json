@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Grafică", "printers": "Imprimante", "scanners": "Scanere", "tablets": "Tablete grafice", "labels": "Etichete și bonuri",
       "capture": "Plăci de captură", "gaming": "Periferice gaming", "wireless": "Wi-Fi și Bluetooth", "laptops": "Laptopuri și producători", "audio": "Audio profesional",
-      "network": "Rețea", "security": "Amprente și securitate", "ups": "UPS", "rgb": "RGB și răcire", "virtual": "Mașini virtuale"
+      "network": "Rețea", "security": "Amprente și securitate", "ups": "UPS", "rgb": "RGB și răcire", "virtual": "Mașini virtuale", "convertibles": "Laptopuri 2 în 1"
+    },
+    "convertibles": {
+      "note": "Un pachet pentru fiecare ediție Soplos: rotește ecranul cu accelerometrul și configurează tastatura de pe ecran potrivită desktopului tău."
     },
     "vendors": {
       "kicker": "Drivere și instrumente",

@@ -2,6 +2,22 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.1-3-beta] - 2026-11-04
+
+### Added
+
+- New page in Drivers, 2-in-1 laptops: it installs `tablet-soplos`, which every Soplos edition has in its own repository with the screen rotation by the accelerometer and the on-screen keyboard that fits its desktop.
+
+### Changed
+
+- The manual page describes the Drivers section, the sources and the theme in Settings, and the Updates page, and lists the new 2-in-1 laptops page.
+- New screenshot of the Updates page when everything is up to date.
+
+### Fixed
+
+- The context menu of the web engine (Back, Forward, Reload, Inspect) no longer opens on a right click in the installed program. It stays available while the program is run for development.
+- The application metadata points to the launcher that the package installs, `soplos-store.desktop`.
+
 ## [3.0.1-2-beta] - 2026-10-29
 
 ### Changed

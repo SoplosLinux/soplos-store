@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Grafica", "printers": "Stampanti", "scanners": "Scanner", "tablets": "Tavolette grafiche", "labels": "Etichette e scontrini",
       "capture": "Schede di acquisizione", "gaming": "Periferiche gaming", "wireless": "Wi-Fi e Bluetooth", "laptops": "Portatili e produttori", "audio": "Audio professionale",
-      "network": "Rete", "security": "Impronte e sicurezza", "ups": "UPS", "rgb": "RGB e raffreddamento", "virtual": "Macchine virtuali"
+      "network": "Rete", "security": "Impronte e sicurezza", "ups": "UPS", "rgb": "RGB e raffreddamento", "virtual": "Macchine virtuali", "convertibles": "Portatili 2-in-1"
+    },
+    "convertibles": {
+      "note": "Un pacchetto per ogni edizione di Soplos: ruota lo schermo con l'accelerometro e configura la tastiera sullo schermo adatta al tuo desktop."
     },
     "vendors": {
       "kicker": "Driver e strumenti",

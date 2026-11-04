@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AudioWaveform, BatteryCharging, Cpu, Fan, Fingerprint, Gamepad2, Laptop, Network, PenTool, Printer, ScanLine, Server, Tag, Video, Wifi } from "lucide-svelte";
+  import { AudioWaveform, BatteryCharging, Cpu, Fan, Fingerprint, Gamepad2, Laptop, Network, PenTool, Printer, ScanLine, Server, Tag, TabletSmartphone, Video, Wifi } from "lucide-svelte";
   import { _ } from "svelte-i18n";
   import CategoryCard from "../components/CategoryCard.svelte";
   import DriversGraphics from "./DriversGraphics.svelte";
@@ -15,6 +15,7 @@
     { id: "printers", icon: Printer, color: "0 150 214", brands: "HP · Brother · Canon · Epson · Xerox · Ricoh", ready: true },
     { id: "scanners", icon: ScanLine, color: "0 168 140", brands: "Epson · Canon · Fujitsu · Brother", ready: true },
     { id: "tablets", icon: PenTool, color: "230 70 120", brands: "Wacom · XP-Pen · Huion · Gaomon · Veikk", ready: true },
+    { id: "convertibles", icon: TabletSmartphone, color: "100 120 240", brands: "iio-sensor-proxy · Onboard · Maliit", ready: true },
     { id: "labels", icon: Tag, color: "250 170 0", brands: "Zebra · Dymo · Brother QL · TSC", ready: true },
     { id: "capture", icon: Video, color: "150 90 230", brands: "Elgato · AVerMedia · Blackmagic", ready: true },
     { id: "gaming", icon: Gamepad2, color: "237 60 60", brands: "Logitech · Razer · SteelSeries · Corsair", ready: true },

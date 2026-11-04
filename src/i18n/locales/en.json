@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Graphics", "printers": "Printers", "scanners": "Scanners", "tablets": "Graphics tablets", "labels": "Labels and receipts",
       "capture": "Capture cards", "gaming": "Gaming peripherals", "wireless": "Wi-Fi and Bluetooth", "laptops": "Laptops and vendors", "audio": "Pro audio",
-      "network": "Network", "security": "Fingerprint and security", "ups": "UPS", "rgb": "RGB and cooling", "virtual": "Virtual machines"
+      "network": "Network", "security": "Fingerprint and security", "ups": "UPS", "rgb": "RGB and cooling", "virtual": "Virtual machines", "convertibles": "2-in-1 laptops"
+    },
+    "convertibles": {
+      "note": "One package for each Soplos edition: it turns the screen with the accelerometer and sets up the on-screen keyboard that fits your desktop."
     },
     "vendors": {
       "kicker": "Drivers and tools",

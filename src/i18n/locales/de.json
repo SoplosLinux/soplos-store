@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Grafik", "printers": "Drucker", "scanners": "Scanner", "tablets": "Grafiktabletts", "labels": "Etiketten und Bons",
       "capture": "Capture-Karten", "gaming": "Gaming-Peripherie", "wireless": "WLAN und Bluetooth", "laptops": "Notebooks und Hersteller", "audio": "Pro-Audio",
-      "network": "Netzwerk", "security": "Fingerabdruck und Sicherheit", "ups": "USV", "rgb": "RGB und Kühlung", "virtual": "Virtuelle Maschinen"
+      "network": "Netzwerk", "security": "Fingerabdruck und Sicherheit", "ups": "USV", "rgb": "RGB und Kühlung", "virtual": "Virtuelle Maschinen", "convertibles": "2-in-1-Laptops"
+    },
+    "convertibles": {
+      "note": "Ein Paket für jede Soplos-Edition: Es dreht den Bildschirm mit dem Beschleunigungssensor und richtet die Bildschirmtastatur ein, die zu deinem Desktop passt."
     },
     "vendors": {
       "kicker": "Treiber und Werkzeuge",

@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Gráficas", "printers": "Impressoras", "scanners": "Scanners", "tablets": "Tablets gráficos", "labels": "Etiquetas e talões",
       "capture": "Placas de captura", "gaming": "Periféricos gaming", "wireless": "Wi-Fi e Bluetooth", "laptops": "Portáteis e fabricantes", "audio": "Áudio profissional",
-      "network": "Rede", "security": "Impressões digitais e segurança", "ups": "UPS", "rgb": "RGB e refrigeração", "virtual": "Máquinas virtuais"
+      "network": "Rede", "security": "Impressões digitais e segurança", "ups": "UPS", "rgb": "RGB e refrigeração", "virtual": "Máquinas virtuais", "convertibles": "Portáteis 2 em 1"
+    },
+    "convertibles": {
+      "note": "Um pacote para cada edição do Soplos: roda o ecrã com o acelerómetro e configura o teclado no ecrã que se adapta ao seu ambiente de trabalho."
     },
     "vendors": {
       "kicker": "Drivers e ferramentas",

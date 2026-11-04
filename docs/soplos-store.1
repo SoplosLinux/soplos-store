@@ -1,4 +1,4 @@
-.TH "SOPLOS-STORE" "1" "2026-10-21" "Soplos Linux" "User Commands"
+.TH "SOPLOS-STORE" "1" "2026-11-04" "Soplos Linux" "User Commands"
 .SH NAME
 soplos-store \- Modern software center for Soplos Linux
 .SH SYNOPSIS
@@ -19,6 +19,10 @@ Snap packages from the Snap Store.
 Standalone AppImages integrated into ~/AppImages with desktop launchers.
 .IP \[bu]
 System firmware updates via fwupd and LVFS.
+.IP \[bu]
+Drivers, a section of the sidebar that is turned on in Settings: the graphics cards of the machine and the NVIDIA driver branches (installed from the Debian repositories or NVIDIA's own CUDA repository, with the patches kernels 7.x need), plus the Mesa and firmware packages of AMD and Intel cards, and pages for printers, scanners, graphics tablets, 2-in-1 laptops (the tablet-soplos package of each Soplos edition), laptops (with a section for Apple Mac computers) and other hardware, each with the official page of its makers.
+.P
+In Settings the user chooses which sources the Store shows (Flatpak, Snap and AppImage: with one turned off the Store shows nothing of it and does not look for its updates), whether the Drivers section is shown, the theme (Automatic follows the one of the desktop) and which of Featured, Popular and Trending appear on the home page. The Updates page lists the packages that apt would upgrade, as PackageKit and GNOME Software see them, and tells which packages go out and which come in with them.
 .P
 Designed to be lightweight and responsive with Tauri 2, Rust, and modern web technologies,
 offering desktop-agnostic integration across XFCE 4.20, KDE Plasma 6, and GNOME 48+.

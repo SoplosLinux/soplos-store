@@ -1,7 +1,7 @@
 import type { ComponentType } from "svelte";
 import {
   AudioWaveform, BatteryCharging, Bluetooth, Boxes, Cable, Camera, Cpu, Disc, Fan, Fingerprint, Gamepad2, Gauge, Keyboard, KeyRound, Laptop, Layers, Lightbulb,
-  Mic, Monitor, Mouse, Network, PenTool, Radio, ScanLine, Server, ShieldCheck, Tablet, Tag, Thermometer, Usb, Video, Wifi, Zap,
+  Mic, Monitor, Mouse, Network, PenTool, Radio, ScanLine, Server, ShieldCheck, Tablet, TabletSmartphone, Tag, Thermometer, Usb, Video, Wifi, Zap,
 } from "lucide-svelte";
 import wacomLogo from "../assets/makers/wacom.svg";
 import xppenLogo from "../assets/makers/xppen.svg";
@@ -160,6 +160,21 @@ export const PAGES: Record<string, DriverPage> = {
           maker("Veikk", PenTool, veikkLogo, "https://veikk.com/pages/download"),
           maker("Ugee", PenTool, ugeeLogo, "https://www.ugee.com/download"), maker("Parblo", PenTool, parbloLogo, "https://github.com/Skrylar/parblo-coast", true),
         ],
+      },
+    ],
+  },
+  // Laptops that fold into a tablet. Every Soplos edition has its own build of
+  // tablet-soplos under the same name, so the repository of the edition the
+  // computer runs serves the right one: rotation sensor plus the on-screen
+  // keyboard that fits that desktop.
+  convertibles: {
+    id: "convertibles",
+    color: "100 120 240",
+    sections: [
+      {
+        id: "tools",
+        titleKey: TOOLS,
+        items: [tool("con-tablet-soplos", "Tablet Soplos", ["tablet-soplos"], "2-IN-1", TabletSmartphone, undefined, { noteKey: "drivers.convertibles.note" })],
       },
     ],
   },

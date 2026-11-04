@@ -309,7 +309,10 @@
     "cat": {
       "graphics": "Cartes graphiques", "printers": "Imprimantes", "scanners": "Scanners", "tablets": "Tablettes graphiques", "labels": "Étiquettes et tickets",
       "capture": "Cartes de capture", "gaming": "Périphériques gaming", "wireless": "Wi-Fi et Bluetooth", "laptops": "Portables et constructeurs", "audio": "Audio pro",
-      "network": "Réseau", "security": "Empreintes et sécurité", "ups": "Onduleurs", "rgb": "RGB et refroidissement", "virtual": "Machines virtuelles"
+      "network": "Réseau", "security": "Empreintes et sécurité", "ups": "Onduleurs", "rgb": "RGB et refroidissement", "virtual": "Machines virtuelles", "convertibles": "Portables 2-en-1"
+    },
+    "convertibles": {
+      "note": "Un paquet pour chaque édition de Soplos : il fait pivoter l'écran avec l'accéléromètre et configure le clavier à l'écran adapté à votre bureau."
     },
     "vendors": {
       "kicker": "Pilotes et outils",
