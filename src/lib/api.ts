@@ -69,6 +69,8 @@ export interface InstalledApp {
   icon: string | null;
   source: SourceKind;
   package: string;
+  // Every package that removing it has to remove, when it is a suite of many (empty otherwise).
+  packages: string[];
   version: string;
   size: string;
 }

@@ -101,6 +101,10 @@ pub struct InstalledApp {
     pub source: String,
     /// Package name, Flatpak app ID or snap name, for removal.
     pub package: String,
+    /// Every package that removing this entry has to remove, when it is a group of them (a suite
+    /// such as LibreOffice is one entry that is made of many packages). Empty when `package` is
+    /// all there is.
+    pub packages: Vec<String>,
     pub version: String,
     pub size: String,
 }

@@ -281,6 +281,11 @@
   </developer>
 
   <releases>
+    <release version="3.0.1-4-beta" date="2026-11-12">
+      <description>
+        <p>Removing LibreOffice from Installed apps removes the whole suite, and not only its metapackage, which left the rest installed.</p>
+      </description>
+    </release>
     <release version="3.0.1-3-beta" date="2026-11-04">
       <description>
         <p>New 2-in-1 laptops page in Drivers, no more web engine menu on right click, and a revised manual page.</p>

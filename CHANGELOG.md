@@ -2,6 +2,12 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.1-4-beta] - 2026-11-12
+
+### Fixed
+
+- Installed apps: removing LibreOffice did nothing when the metapackage `libreoffice` had already been removed. The entry stood for that one package, so `apt-get remove libreoffice` had nothing to remove, finished with no error and the page took the app as removed, while `libreoffice-writer`, `libreoffice-core`, `libreoffice-common` and the rest stayed installed and the entry came back when the list was read again. An entry that is a suite of many packages now carries all of them, and removing it removes every one that is installed, also when several entries are selected and removed together.
+
 ## [3.0.1-3-beta] - 2026-11-04
 
 ### Added

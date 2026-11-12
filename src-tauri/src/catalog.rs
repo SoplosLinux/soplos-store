@@ -688,6 +688,11 @@ fn installed_apps() -> Vec<InstalledApp> {
             .map(|(_, (_, size_kib))| size_kib * 1024)
             .sum();
 
+        // Removing the entry removes every package of the suite that is installed, and not only
+        // the metapackage that names it: the metapackage can already be gone while the rest stays.
+        let mut suite: Vec<String> = installed.keys().filter(|pkg| pkg.starts_with("libreoffice-") || *pkg == "libreoffice").cloned().collect();
+        suite.sort();
+
         let icon = desktop_fallback
             .get("libreoffice-common")
             .and_then(|e| e.icon.clone())
@@ -701,6 +706,7 @@ fn installed_apps() -> Vec<InstalledApp> {
             icon,
             source: "apt".into(),
             package: "libreoffice".into(),
+            packages: suite,
             version: lo_version,
             size: system::format_size(lo_size),
         });
@@ -727,6 +733,7 @@ fn installed_apps() -> Vec<InstalledApp> {
                 icon: app.icon.clone(),
                 source: "apt".into(),
                 package: package.clone(),
+                packages: Vec::new(),
                 version: version.clone(),
                 size: system::format_size(size_kib * 1024),
             });
@@ -749,6 +756,7 @@ fn installed_apps() -> Vec<InstalledApp> {
                 icon: entry.icon.clone(),
                 source: "apt".into(),
                 package: package.clone(),
+                packages: Vec::new(),
                 version: version.clone(),
                 size: system::format_size(size_kib * 1024),
             });
@@ -760,6 +768,7 @@ fn installed_apps() -> Vec<InstalledApp> {
         apps.push(InstalledApp {
             icon: flatpak::icon(&app.id, &app.scope),
             package: app.id.clone(),
+            packages: Vec::new(),
             id: app.id,
             name: app.name,
             summary: app.summary,
@@ -775,6 +784,7 @@ fn installed_apps() -> Vec<InstalledApp> {
             id: format!("snap:{}", app.name),
             icon: snap::local_icon(&app.name),
             package: app.name.clone(),
+            packages: Vec::new(),
             name: app.name,
             summary: String::new(),
             source: "snap".into(),
@@ -793,6 +803,7 @@ fn installed_apps() -> Vec<InstalledApp> {
             icon: app.icon,
             source: "appimage".into(),
             package: app.file,
+            packages: Vec::new(),
             version: app.version,
             size: app.size,
         });

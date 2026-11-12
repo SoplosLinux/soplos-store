@@ -53,9 +53,12 @@
     }
   }
 
+  // What removing an entry removes: all the packages of a suite, or the one package.
+  const toRemoveOf = (app: InstalledApp) => (app.packages.length > 0 ? app.packages : [app.package]);
+
   async function remove(app: InstalledApp) {
     const title = $_("jobs.removing", { values: { name: app.name } });
-    if (await runJob(title, { action: "remove", source: app.source, ids: [app.package] }, app.id)) {
+    if (await runJob(title, { action: "remove", source: app.source, ids: toRemoveOf(app) }, app.id)) {
       overrides.update((o) => ({ ...o, [`${app.id}:${app.source}`]: false }));
       await load();
     }
@@ -70,7 +73,7 @@
       const items = toRemove.filter((app) => app.source === source);
       if (items.length === 0) continue;
 
-      const ids = items.map((a) => a.package);
+      const ids = items.flatMap(toRemoveOf);
       const title = $_("jobs.removing", { values: { name: items.length === 1 ? items[0].name : `${items.length} ${$_(`sources.${source}`)}` } });
       await runJob(title, { action: "remove", source, ids }, `remove-bulk:${source}`);
       for (const app of items) {
