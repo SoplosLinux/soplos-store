@@ -69,7 +69,7 @@ fn detect_installed_nvidia_version() -> Option<String> {
 }
 
 // Marker substrings for GPUs of the Turing generation or newer — the only
-// cards the 610/590 driver branches support. Installing them on an older
+// cards the 620 driver branch supports. Installing them on an older
 // card leaves the machine with no working module, and since the NVIDIA
 // package blacklists nouveau, with no graphics driver at all. Ported as-is
 // from hardware_detector.py's NVIDIA_TURING_PLUS_MARKERS.
@@ -118,7 +118,10 @@ pub(crate) fn contains_word_boundary(haystack: &str, needle: &str) -> bool {
 
 pub(crate) fn is_nvidia_turing_or_newer(model: &str) -> bool {
     let model_lower = model.to_lowercase();
-    NVIDIA_TURING_PLUS_MARKERS.iter().any(|marker| contains_word_boundary(&model_lower, marker))
+    // "gtx 16" is the start of a model number (GTX 1650, 1660 Ti): as a whole
+    // word it never matched, and these Turing cards were sent to nouveau.
+    ["gtx 16", "gtx16"].iter().any(|m| model_lower.contains(m))
+        || NVIDIA_TURING_PLUS_MARKERS.iter().any(|marker| contains_word_boundary(&model_lower, marker))
 }
 
 fn extract_bracketed_model(line: &str) -> Option<String> {
@@ -159,7 +162,7 @@ fn recommend_nvidia_driver(model: &str) -> String {
     let model_lower = model.to_lowercase();
 
     if is_nvidia_turing_or_newer(&model_lower) {
-        return "nvidia-driver-610".to_string();
+        return "nvidia-driver-620".to_string();
     }
     let pascal_maxwell = [
         "gtx 10", "gtx10", "gtx 1080", "gtx 1070", "gtx 1060", "gtx 1050", "gt 1030", "mx350",
@@ -483,7 +486,9 @@ mod tests {
     fn the_nvidia_branch_follows_the_generation_of_the_card() {
         // Turing and newer take the newest branch, Maxwell and Pascal the 580,
         // and the older ones the legacy branches or nouveau.
-        assert_eq!(recommend_nvidia_driver("GeForce RTX 3060"), "nvidia-driver-610");
+        assert_eq!(recommend_nvidia_driver("GeForce RTX 3060"), "nvidia-driver-620");
+        assert_eq!(recommend_nvidia_driver("GeForce GTX 1650"), "nvidia-driver-620");
+        assert_eq!(recommend_nvidia_driver("TU116 [GeForce GTX 1660 Ti]"), "nvidia-driver-620");
         assert_eq!(recommend_nvidia_driver("GeForce GTX 960"), "nvidia-driver-580");
         assert_eq!(recommend_nvidia_driver("GeForce GTX 650"), "nvidia-tesla-470-driver");
         assert_eq!(recommend_nvidia_driver("GeForce GTX 580"), "nvidia-legacy-390xx-driver");

@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn the_helper_refuses_branches_outside_the_closed_lists() {
         assert!(refused(&["nvidia-install-cuda", "999"]));
-        assert!(refused(&["nvidia-install-cuda", "590; reboot"]));
+        assert!(refused(&["nvidia-install-cuda", "620; reboot"]));
         assert!(refused(&["nvidia-install-cuda"]));
         assert!(refused(&["nvidia-install-repo", "bash"]));
         assert!(refused(&["nvidia-install-repo", "nvidia-driver", "extra"]));

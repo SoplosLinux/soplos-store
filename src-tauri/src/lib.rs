@@ -1,6 +1,7 @@
 mod appimage;
 mod appimage_update;
 mod apt;
+mod boot;
 mod cache;
 mod catalog;
 mod desktop;

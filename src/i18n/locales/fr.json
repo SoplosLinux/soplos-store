@@ -351,8 +351,7 @@
       "proxmox": { "title": "Agent QEMU pour Proxmox", "hint": "Permet à Proxmox d'éteindre l'invité et de lire son réseau." }
     },
     "branch": {
-      "610": { "label": "NVIDIA 610 (Dernière)", "hint": "Blackwell et plus récent : série RTX 50/60" },
-      "590": { "label": "NVIDIA 590 (Stable)", "hint": "Turing et plus récent : GTX 16xx, RTX 20/30/40/50" },
+      "620": { "label": "NVIDIA 620 (Dernière)", "hint": "Turing et plus récent : GTX 16xx, RTX 20/30/40/50" },
       "580": { "label": "NVIDIA 580 (Production)", "hint": "De Maxwell à Blackwell (GTX 900 → RTX 5000)" },
       "nvidia-driver": { "label": "NVIDIA 550 (Dépôt)", "hint": "De Maxwell à Ada Lovelace" },
       "nvidia-tesla-470-driver": { "label": "NVIDIA 470 (Ancien)", "hint": "De Kepler à Ampere — nécessite Debian Sid activé" },

@@ -18,13 +18,12 @@
   import boxesLogo from "../assets/drivers/gnome-boxes.svg";
   import proxmoxLogo from "../assets/drivers/proxmox.svg";
 
-  // The NVIDIA branches of the Store, newest first. The 610 and the 590 only
-  // work on Turing cards or newer: on an older one the module would not
+  // The NVIDIA branches of the Store, newest first. The 620 only works on
+  // Turing cards or newer: on an older one the module would not
   // build and, since the NVIDIA package blacklists nouveau, the machine
   // would be left without a graphics driver.
   const BRANCHES = [
-    { id: "610", big: "610", needsTuring: true },
-    { id: "590", big: "590", needsTuring: true },
+    { id: "620", big: "620", needsTuring: true },
     { id: "580", big: "580", needsTuring: false },
     { id: "nvidia-driver", big: "550", needsTuring: false },
     { id: "nvidia-tesla-470-driver", big: "470", needsTuring: false },
@@ -124,14 +123,14 @@
 
   onMount(load);
 
-  // "nvidia-driver-610" is the branch "610"; the others are named as they are.
+  // "nvidia-driver-620" is the branch "620"; the others are named as they are.
   const branchOf = (driver: string | null) => (driver ? (driver.match(/^nvidia-driver-(\d+)$/)?.[1] ?? driver) : null);
 
   $: nvidiaGpu = gpus.find((g) => g.vendor === "NVIDIA") ?? null;
   $: installedIds = new Set(branches.filter((b) => b.installed).map((b) => b.id));
   $: anyNvidiaInstalled = installedIds.size > 0;
   $: recommendedId = nvidiaGpu ? branchOf(nvidiaGpu.recommendedDriver) : null;
-  $: turing = nvidiaGpu?.recommendedDriver === "nvidia-driver-610";
+  $: turing = nvidiaGpu?.recommendedDriver === "nvidia-driver-620";
   $: working = $jobs.some((j) => j.status === "running" && (j.key?.startsWith("driver:") ?? false));
   $: setOf = (id: string) => sets.find((s) => s.id === id);
   const isBusy = (key: string, list: typeof $jobs) => list.some((j) => j.status === "running" && j.key === key);

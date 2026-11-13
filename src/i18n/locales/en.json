@@ -351,8 +351,7 @@
       "proxmox": { "title": "QEMU agent for Proxmox", "hint": "Lets Proxmox shut the guest down and read its network." }
     },
     "branch": {
-      "610": { "label": "NVIDIA 610 (Latest)", "hint": "Blackwell and newer: RTX 50/60 series" },
-      "590": { "label": "NVIDIA 590 (Stable)", "hint": "Turing and newer: GTX 16xx, RTX 20/30/40/50" },
+      "620": { "label": "NVIDIA 620 (Latest)", "hint": "Turing and newer: GTX 16xx, RTX 20/30/40/50" },
       "580": { "label": "NVIDIA 580 (Production)", "hint": "Maxwell to Blackwell (GTX 900 → RTX 5000)" },
       "nvidia-driver": { "label": "NVIDIA 550 (Repo)", "hint": "Maxwell to Ada Lovelace" },
       "nvidia-tesla-470-driver": { "label": "NVIDIA 470 (Legacy)", "hint": "Kepler to Ampere — needs Debian Sid enabled" },

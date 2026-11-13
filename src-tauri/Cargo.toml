@@ -1,6 +1,6 @@
 [package]
 name = "soplos-store"
-version = "3.0.1-4-beta"
+version = "3.0.1-5-beta"
 description = "Soplos Store"
 authors = ["Sergi Perich <info@soploslinux.com>"]
 license = "GPL-3.0-or-later"

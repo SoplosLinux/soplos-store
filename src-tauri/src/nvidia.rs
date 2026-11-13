@@ -4,12 +4,14 @@
 // (see privileged.rs) from a branch name checked against a closed list, so no
 // script text ever comes from outside the binary.
 
+use crate::boot::BOOT_FUNCTIONS;
+
 /// Driver packages of the Debian repositories: the 550 branch and the legacy
 /// 470, 390 and 340 ones (these need Debian Sid).
 pub const REPO_PACKAGES: [&str; 4] = ["nvidia-driver", "nvidia-tesla-470-driver", "nvidia-legacy-390xx-driver", "nvidia-legacy-340xx-driver"];
 
 /// Branches of NVIDIA's own CUDA repository.
-pub const CUDA_BRANCHES: [&str; 3] = ["580", "590", "610"];
+pub const CUDA_BRANCHES: [&str; 2] = ["580", "620"];
 
 // === NVIDIA DKMS compatibility patches for Soplos kernel 7.x ===
 // Ported verbatim from drivers_tab.py (NV_MMAP_VMA_LOCK_PATCH / NV_STRING_H_PATCH /
@@ -765,8 +767,10 @@ pub fn repo_script(package: &str) -> Result<String, String> {
     }
     let patch = nvidia_dkms_patch_commands();
     let llvm = LLVM_DKMS_TOOLCHAIN;
+    let boot = BOOT_FUNCTIONS;
     let script = format!(
         r#"set -e
+{boot}
 echo "Installing NVIDIA driver from repository..."
 echo "Removing NVIDIA DKMS modules from all kernels..."
 for entry in $(dkms status | grep -i nvidia | awk -F'[:,]' '{{print $1"/"$2}}' | tr -d ' '); do
@@ -801,19 +805,15 @@ dkms autoinstall || true
 if ! dkms status | grep -qi "nvidia.*installed"; then
     echo "WARNING: the NVIDIA DKMS module did not build. Run 'dkms autoinstall' manually before rebooting."
 fi
-echo "Configuring GRUB with nvidia-drm.modeset=1..."
-if ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
-    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nvidia-drm.modeset=1"/' /etc/default/grub
-    update-grub
-fi
 if command -v dracut >/dev/null 2>&1; then
     mkdir -p /etc/dracut.conf.d
     echo 'omit_drivers+=" nouveau "' > /etc/dracut.conf.d/blacklist-nouveau.conf
     rm -f /etc/dracut.conf.d/nvidia.conf
-    dracut --force
-elif command -v update-initramfs >/dev/null 2>&1; then
-    update-initramfs -u
 fi
+update-initramfs -u -k all
+echo "Adding nvidia-drm.modeset=1 to the kernel command line..."
+soplos_cmdline_add nvidia-drm.modeset=1
+soplos_boot_update
 echo "=== Installation completed ==="
 echo "NVIDIA driver installed successfully. Restart the system to apply the changes."
 "#
@@ -822,7 +822,7 @@ echo "NVIDIA driver installed successfully. Restart the system to apply the chan
 }
 
 // Installs an NVIDIA driver from the official NVIDIA CUDA repository — used
-// by the 580/590/610 branches, each pinned to the Debian release NVIDIA
+// by the 580 and 620 branches, each pinned to the Debian release NVIDIA
 // actually publishes packages for. Ported from
 // drivers_tab.py's _on_nvidia_cuda_repo_clicked.
 pub fn cuda_script(version: &str) -> Result<String, String> {
@@ -838,21 +838,6 @@ trap 'rm -f /etc/apt/sources.list.d/cuda-debian12-x86_64.list' EXIT"#
             "apt install -y nvidia-driver-pinning-580\napt install -y --allow-downgrades cuda-drivers-580".to_string(),
             "trap - EXIT\nrm -f /etc/apt/sources.list.d/cuda-debian12-x86_64.list\napt update -q".to_string(),
         ),
-        "590" => (
-            r#"TEMP_DIR=$(mktemp -d)
-wget -q -O "$TEMP_DIR/cuda-keyring.deb" \
-    https://developer.download.nvidia.com/compute/cuda/repos/debian13/x86_64/cuda-keyring_1.1-1_all.deb
-if [ ! -s "$TEMP_DIR/cuda-keyring.deb" ]; then
-    echo "ERROR: Failed to download cuda-keyring."
-    rm -rf "$TEMP_DIR"
-    exit 1
-fi
-dpkg -i "$TEMP_DIR/cuda-keyring.deb"
-rm -rf "$TEMP_DIR""#
-                .to_string(),
-            "apt install -y nvidia-driver-pinning-590\napt install -y nvidia-open-590".to_string(),
-            "apt purge -y cuda-keyring\nrm -f /etc/apt/sources.list.d/cuda-debian13-x86_64.list\napt update -q".to_string(),
-        ),
         _ => (
             r#"TEMP_DIR=$(mktemp -d)
 wget -q -O "$TEMP_DIR/cuda-keyring.deb" \
@@ -865,7 +850,10 @@ fi
 dpkg -i "$TEMP_DIR/cuda-keyring.deb"
 rm -rf "$TEMP_DIR""#
                 .to_string(),
-            "apt install -y nvidia-driver-pinning-610\napt install -y nvidia-open-610".to_string(),
+            // NVIDIA's debian13 repository has no nvidia-open-NNN packages:
+            // the branch is chosen with the pinning package, then the meta
+            // package nvidia-open follows it.
+            format!("apt install -y nvidia-driver-pinning-{version}\napt install -y nvidia-open"),
             "apt purge -y cuda-keyring\nrm -f /etc/apt/sources.list.d/cuda-debian13-x86_64.list\napt update -q".to_string(),
         ),
     };
@@ -873,8 +861,10 @@ rm -rf "$TEMP_DIR""#
     let patch = nvidia_dkms_patch_commands();
     let llvm = LLVM_DKMS_TOOLCHAIN;
 
+    let boot = BOOT_FUNCTIONS;
     let script = format!(
         r#"set -e
+{boot}
 echo "=== NVIDIA {version} Official CUDA Repository ({distro}) ==="
 echo "[0/6] Removing NVIDIA DKMS modules from all kernels..."
 for entry in $(dkms status | grep -i nvidia | awk -F'[:,]' '{{print $1"/"$2}}' | tr -d ' '); do
@@ -924,15 +914,11 @@ if command -v dracut >/dev/null 2>&1; then
     mkdir -p /etc/dracut.conf.d
     echo 'omit_drivers+=" nouveau "' > /etc/dracut.conf.d/blacklist-nouveau.conf
     rm -f /etc/dracut.conf.d/nvidia.conf
-    dracut --force
-elif command -v update-initramfs >/dev/null 2>&1; then
-    update-initramfs -u
 fi
-echo "[+] Configuring GRUB with nvidia-drm.modeset=1..."
-if ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
-    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nvidia-drm.modeset=1"/' /etc/default/grub
-fi
-update-grub
+update-initramfs -u -k all
+echo "[+] Adding nvidia-drm.modeset=1 to the kernel command line..."
+soplos_cmdline_add nvidia-drm.modeset=1
+soplos_boot_update
 echo "[6/6] Done."
 echo "NVIDIA driver {version} installed. Restart to apply changes."
 "#
@@ -944,7 +930,7 @@ echo "NVIDIA driver {version} installed. Restart to apply changes."
 // by switching to nouveau. Ported from drivers_tab.py's
 // _build_nvidia_uninstall_script.
 pub fn uninstall_script() -> String {
-    let script = r#"echo "=== Removing all NVIDIA drivers ==="
+    let script = BOOT_FUNCTIONS.to_string() + r#"echo "=== Removing all NVIDIA drivers ==="
 echo "[0/7] Removing NVIDIA DKMS modules from all kernels..."
 for entry in $(dkms status | grep -i nvidia | awk -F'[:,]' '{print $1"/"$2}' | tr -d ' '); do
     dkms remove --force "$entry" --all 2>/dev/null || true
@@ -974,18 +960,13 @@ echo "[4/7] Removing NVIDIA dracut configuration..."
 rm -f /etc/dracut.conf.d/nvidia.conf
 rm -f /etc/dracut.conf.d/blacklist-nouveau.conf
 rm -f /etc/apt/apt.conf.d/99nvidia-sha1-exception
-echo "[5/7] Restoring GRUB defaults..."
-sed -i 's/ nvidia-drm.modeset=1//' /etc/default/grub 2>/dev/null || true
-update-grub 2>/dev/null || true
-echo "[6/7] Regenerating initramfs..."
-if command -v dracut >/dev/null 2>&1; then
-    dracut --force
-elif command -v update-initramfs >/dev/null 2>&1; then
-    update-initramfs -u
-fi
+echo "[5/7] Regenerating initramfs..."
+update-initramfs -u -k all || true
+echo "[6/7] Removing nvidia-drm.modeset=1 from the kernel command line..."
+soplos_cmdline_remove nvidia-drm.modeset=1
+soplos_boot_update || true
 echo "[7/7] Done. Restart the system before installing a new driver version."
-"#
-    .to_string();
+"#;
     script
 }
 
@@ -1016,7 +997,9 @@ mod tests {
     #[test]
     fn only_the_listed_branches_are_accepted() {
         assert!(cuda_script("999").is_err());
-        assert!(cuda_script("590; rm -rf /").is_err());
+        assert!(cuda_script("620; rm -rf /").is_err());
+        assert!(cuda_script("590").is_err(), "590 and 610 are gone");
+        assert!(cuda_script("610").is_err());
         assert!(cuda_script("").is_err());
         assert!(repo_script("nvidia-driver; reboot").is_err());
         assert!(repo_script("bash").is_err());
@@ -1025,7 +1008,7 @@ mod tests {
 
     #[test]
     fn the_scripts_carry_the_kernel_patches() {
-        let script = cuda_script("590").unwrap();
+        let script = cuda_script("620").unwrap();
         assert!(script.contains("NV_P590"), "Fix 7 for the 590 open modules");
         assert!(script.contains("NV_P550"), "Fix 6 for the 550");
         assert!(script.contains("dkms autoinstall"));

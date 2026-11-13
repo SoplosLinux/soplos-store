@@ -2,6 +2,19 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.1-5-beta] - 2026-11-14
+
+### Changed
+
+- Drivers, NVIDIA: installing a driver (repository of Debian and of NVIDIA) and removing it put `nvidia-drm.modeset=1` where the boot loader of the system reads it, and write its menu again: `/etc/default/grub` and `update-grub` with GRUB, `/etc/kernel/cmdline` and `limine-update` with Limine, `/etc/kernel/cmdline` and `kernel-install add` for every kernel with systemd-boot, the three that Soplos Linux Installer offers. The boot loader is detected as Soplos Welcome does it (`src-tauri/src/boot.rs`).
+- The initramfs is rebuilt with `update-initramfs -u -k all` instead of `dracut --force`: on Soplos it is dracut's own wrapper, which also runs the hooks that copy the new initramfs to the EFI partition for systemd-boot, and it does every kernel, not only the running one.
+- NVIDIA branches: 620 (Turing and newer) replaces 590 and 610; 580 stays for Maxwell and Pascal. The 620 branch is installed as NVIDIA publishes it for Debian 13, `nvidia-driver-pinning-620` and then `nvidia-open`. The helper refuses 590 and 610.
+
+### Fixed
+
+- The GTX 1650 and 1660 (Turing) were recommended nouveau: "gtx 16" was matched as a whole word, which a model number never is. They get the 620 branch.
+- The NVIDIA 590 and 610 branches installed `nvidia-open-590` and `nvidia-open-610`, packages that NVIDIA's Debian 13 repository does not have.
+
 ## [3.0.1-4-beta] - 2026-11-12
 
 ### Fixed

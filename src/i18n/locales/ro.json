@@ -351,8 +351,7 @@
       "proxmox": { "title": "Agent QEMU pentru Proxmox", "hint": "Permite Proxmox să oprească oaspetele și să-i citească rețeaua." }
     },
     "branch": {
-      "610": { "label": "NVIDIA 610 (Cea mai nouă)", "hint": "Blackwell și mai nou: seria RTX 50/60" },
-      "590": { "label": "NVIDIA 590 (Stabilă)", "hint": "Turing și mai nou: GTX 16xx, RTX 20/30/40/50" },
+      "620": { "label": "NVIDIA 620 (Cea mai nouă)", "hint": "Turing și mai nou: GTX 16xx, RTX 20/30/40/50" },
       "580": { "label": "NVIDIA 580 (Producție)", "hint": "De la Maxwell la Blackwell (GTX 900 → RTX 5000)" },
       "nvidia-driver": { "label": "NVIDIA 550 (Repo)", "hint": "De la Maxwell la Ada Lovelace" },
       "nvidia-tesla-470-driver": { "label": "NVIDIA 470 (Legacy)", "hint": "De la Kepler la Ampere — necesită Debian Sid activat" },

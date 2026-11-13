@@ -91,7 +91,7 @@ export interface GpuInfo {
   model: string;
   /** "Dedicated", "Integrated", "Dedicated/Integrated" or "Virtual". */
   gpuType: string;
-  /** For NVIDIA a branch ("nvidia-driver-610", "nouveau"...), for AMD and Intel the packages, space separated. */
+  /** For NVIDIA a branch ("nvidia-driver-620", "nouveau"...), for AMD and Intel the packages, space separated. */
   recommendedDriver: string | null;
   driverStatus: "installed" | "different_version" | "partial" | "missing";
   installedDriverVersion: string | null;

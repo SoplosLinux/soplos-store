@@ -3536,7 +3536,7 @@ dependencies = [
 
 [[package]]
 name = "soplos-store"
-version = "3.0.1-4-beta"
+version = "3.0.1-5-beta"
 dependencies = [
  "base64 0.22.1",
  "flate2",

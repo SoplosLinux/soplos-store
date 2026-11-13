@@ -450,7 +450,7 @@ mod driver_tests {
 
     #[test]
     fn a_listed_branch_becomes_the_matching_privileged_action() {
-        assert!(mentions(&plan(&request("install", &["590"])).unwrap(), "nvidia-install-cuda"));
+        assert!(mentions(&plan(&request("install", &["620"])).unwrap(), "nvidia-install-cuda"));
         assert!(mentions(&plan(&request("install", &["nvidia-driver"])).unwrap(), "nvidia-install-repo"));
         assert!(mentions(&plan(&request("remove", &[])).unwrap(), "nvidia-remove"));
         assert!(mentions(&plan(&request("install", &["oneapi-mkl"])).unwrap(), "vendor-install"));
@@ -459,9 +459,9 @@ mod driver_tests {
     #[test]
     fn anything_not_in_the_closed_lists_is_refused() {
         assert!(plan(&request("install", &["999"])).is_err());
-        assert!(plan(&request("install", &["590; reboot"])).is_err());
+        assert!(plan(&request("install", &["620; reboot"])).is_err());
         assert!(plan(&request("install", &["bash"])).is_err());
         assert!(plan(&request("install", &[])).is_err());
-        assert!(plan(&request("install", &["580", "590"])).is_err(), "one driver at a time");
+        assert!(plan(&request("install", &["580", "620"])).is_err(), "one driver at a time");
     }
 }
