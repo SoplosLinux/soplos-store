@@ -2,6 +2,14 @@
 
 All notable changes to Soplos Store are documented in this file.
 
+## [3.0.0] - 2026-11-16
+
+First stable release: the program is no longer in beta.
+
+### Added
+
+- An installed application has an Open button next to Uninstall, on its page: it starts the application as its launcher in the menu does (its desktop file for APT and AppImages, `flatpak run` and `snap run` for Flatpak and Snap). An application with nothing to open, such as a library or a tool of the terminal, has no Open button.
+
 ## [3.0.1-5-beta] - 2026-11-14
 
 ### Changed

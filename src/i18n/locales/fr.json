@@ -24,6 +24,7 @@
     "install": "Installer",
     "uninstall": "Désinstaller",
     "open": "Ouvrir",
+    "openFailed": "Impossible d'ouvrir {name}",
     "update": "Mettre à jour",
     "back": "Retour",
     "seeAll": "Tout voir",

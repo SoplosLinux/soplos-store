@@ -281,6 +281,11 @@
   </developer>
 
   <releases>
+    <release version="3.0.0" date="2026-11-16">
+      <description>
+        <p>First stable release. An installed application can be opened from its page in the store, with the new Open button next to Uninstall.</p>
+      </description>
+    </release>
     <release version="3.0.1-5-beta" date="2026-11-14">
       <description>
         <p>The NVIDIA drivers work with the three boot loaders of Soplos Linux Installer, GRUB, Limine and systemd-boot. The NVIDIA 620 branch replaces 590 and 610, and the GTX 1650 and 1660 get it instead of nouveau.</p>

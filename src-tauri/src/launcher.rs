@@ -2,7 +2,7 @@
 // desktop hands to this app (.deb, .flatpak, .flatpakref, .snap,
 // .AppImage) when the user double-clicks one.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
 
@@ -46,6 +46,101 @@ pub fn launch_app(name: String) -> Result<(), String> {
         .spawn()
         .map(|_| ())
         .map_err(|e| e.to_string())
+}
+
+/// How an installed application is started.
+enum Launch {
+    /// Its desktop file, started as the desktop starts it.
+    Desktop(PathBuf),
+    /// A command, for the sandboxed formats.
+    Command(&'static str, Vec<String>),
+}
+
+fn in_path(program: &str) -> bool {
+    std::env::var_os("PATH").is_some_and(|paths| std::env::split_paths(&paths).any(|dir| dir.join(program).is_file()))
+}
+
+/// The folders where the desktop looks for applications: the ones of the
+/// user, of the system and of Flatpak.
+fn application_dirs() -> Vec<PathBuf> {
+    let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+    let mut dirs = vec![std::env::var_os("XDG_DATA_HOME").map(PathBuf::from).unwrap_or_else(|| home.join(".local/share"))];
+    let system = std::env::var("XDG_DATA_DIRS").unwrap_or_else(|_| "/usr/local/share:/usr/share".to_string());
+    dirs.extend(system.split(':').filter(|d| !d.is_empty()).map(PathBuf::from));
+    dirs.push(home.join(".local/share/flatpak/exports/share"));
+    dirs.push(PathBuf::from("/var/lib/flatpak/exports/share"));
+    dirs.into_iter().map(|d| d.join("applications")).collect()
+}
+
+/// The first desktop file with one of `names` that is not hidden.
+fn find_desktop(names: &[String]) -> Option<PathBuf> {
+    let dirs = application_dirs();
+    for name in names.iter().filter(|n| !n.is_empty()) {
+        let file = if name.ends_with(".desktop") { name.clone() } else { format!("{name}.desktop") };
+        for dir in &dirs {
+            let path = dir.join(&file);
+            if let Ok(text) = std::fs::read_to_string(&path) {
+                if !text.lines().any(|l| l.trim() == "Hidden=true") {
+                    return Some(path);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// How to start the app `app_id`, installed from `source` as `ref_id`; None
+/// when it has nothing to start (a library, a tool of the terminal, firmware).
+fn launch_for(app_id: &str, source: &str, ref_id: &str) -> Option<Launch> {
+    match source {
+        "flatpak" => Some(Launch::Command("flatpak", vec!["run".into(), ref_id.into()])),
+        "snap" => Some(Launch::Command("snap", vec!["run".into(), ref_id.into()])),
+        "firmware" => None,
+        _ => {
+            // The desktop files the catalog knows for the app, then its IDs.
+            let mut names: Vec<String> = crate::apt::find(app_id, "").map(|a| a.desktop_ids.clone()).unwrap_or_default();
+            names.extend([app_id.to_string(), ref_id.to_string()]);
+            find_desktop(&names).map(Launch::Desktop)
+        }
+    }
+}
+
+/// Whether the installed app can be opened, so its page shows an Open button.
+#[tauri::command(async)]
+pub fn can_open_app(app_id: String, source: String, ref_id: String) -> bool {
+    launch_for(&app_id, &source, &ref_id).is_some()
+}
+
+/// Opens an installed app, as its launcher in the menu does.
+#[tauri::command(async)]
+pub fn open_app(app_id: String, source: String, ref_id: String) -> Result<(), String> {
+    let (program, args): (String, Vec<String>) = match launch_for(&app_id, &source, &ref_id).ok_or("The app has nothing to open")? {
+        Launch::Command(program, args) => (program.to_string(), args),
+        Launch::Desktop(path) => {
+            let stem = path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();
+            if in_path("gtk-launch") {
+                ("gtk-launch".into(), vec![stem])
+            } else if in_path("gio") {
+                ("gio".into(), vec!["launch".into(), path.to_string_lossy().to_string()])
+            } else if in_path("kioclient") {
+                ("kioclient".into(), vec!["exec".into(), path.to_string_lossy().to_string()])
+            } else {
+                return Err("There is no program to start desktop files (gtk-launch, gio or kioclient)".into());
+            }
+        }
+    };
+    let mut child = Command::new(&program)
+        .args(&args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    // Waited for in the background, so it never stays as a zombie.
+    std::thread::spawn(move || {
+        let _ = child.wait();
+    });
+    Ok(())
 }
 
 #[tauri::command]

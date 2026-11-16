@@ -24,6 +24,7 @@
     "install": "Instalează",
     "uninstall": "Dezinstalează",
     "open": "Deschide",
+    "openFailed": "{name} nu a putut fi deschis",
     "update": "Actualizează",
     "back": "Înapoi",
     "seeAll": "Vezi tot",
