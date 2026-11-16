@@ -10,6 +10,10 @@ First stable release: the program is no longer in beta.
 
 - An installed application has an Open button next to Uninstall, on its page: it starts the application as its launcher in the menu does (its desktop file for APT and AppImages, `flatpak run` and `snap run` for Flatpak and Snap). An application with nothing to open, such as a library or a tool of the terminal, has no Open button.
 
+### Fixed
+
+- The package had no section, so APT repositories managed with reprepro refused it ("No section given"). It is in the section `admin`, with the priority `optional`, as the other Soplos programs that change the system.
+
 ## [3.0.1-5-beta] - 2026-11-14
 
 ### Changed

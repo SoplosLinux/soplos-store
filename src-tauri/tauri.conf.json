@@ -48,6 +48,8 @@
     ],
     "linux": {
       "deb": {
+        "section": "admin",
+        "priority": "optional",
         "depends": [
           "pkexec",
           "fwupd",
