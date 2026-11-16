@@ -26,7 +26,7 @@
   import Settings from "./views/Settings.svelte";
 
   // The footer never shows the package revision, only the base version.
-  const FOOTER_VERSION = "3.0.1-beta";
+  const FOOTER_VERSION = "3.0.0";
 
   const tabs = [
     { id: "explore", icon: Compass },
