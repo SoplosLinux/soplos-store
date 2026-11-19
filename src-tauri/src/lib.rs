@@ -60,15 +60,22 @@ pub struct EnvironmentInfo {
 }
 
 /// Desktop environment and display protocol for the sidebar footer,
-/// e.g. "XFCE" and "X11".
+/// e.g. "Xfce" and "X11", named as the other Soplos 3.0 programs name them.
 #[tauri::command]
 fn get_environment_info() -> EnvironmentInfo {
-    let desktop = std::env::var("XDG_CURRENT_DESKTOP")
-        .unwrap_or_default()
-        .split(':')
-        .next()
-        .unwrap_or("")
-        .to_string();
+    let raw = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default();
+    let lower = raw.to_lowercase();
+    // XDG_CURRENT_DESKTOP says "XFCE", "KDE" or "ubuntu:GNOME"; the footer
+    // shows the name of the desktop as its project writes it.
+    let desktop = if lower.contains("xfce") {
+        "Xfce".to_string()
+    } else if lower.contains("kde") || lower.contains("plasma") {
+        "Plasma".to_string()
+    } else if lower.contains("gnome") {
+        "GNOME".to_string()
+    } else {
+        raw.split(':').next().unwrap_or("").to_string()
+    };
     let session = match std::env::var("XDG_SESSION_TYPE")
         .unwrap_or_default()
         .to_lowercase()
