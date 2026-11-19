@@ -18,9 +18,27 @@
   onMount(async () => {
     pkg = await api.inspectPackage(path).catch(() => null);
     loaded = true;
+    // A .deb that is already installed can be opened at once.
+    await checkOpen();
   });
 
   let installedOk = false;
+  // What a .deb installed in the menu, read from dpkg once it is installed.
+  let canOpen = false;
+
+  async function checkOpen() {
+    canOpen = pkg?.kind === "deb" ? await api.canOpenPackage(pkg.name).catch(() => false) : false;
+  }
+
+  async function openPackage() {
+    if (!pkg) return;
+    launchError = "";
+    try {
+      await api.openPackage(pkg.name);
+    } catch {
+      launchError = $_("common.openFailed", { values: { name: pkg.name } });
+    }
+  }
   $: running = $jobs.some((j) => j.key === path && j.status === "running");
 
   async function install() {
@@ -28,6 +46,7 @@
     const title = $_("jobs.installing", { values: { name: pkg.name } });
     if (pkg.kind === "deb") {
       installedOk = await runJob(title, { action: "install-file", source: "apt", file: pkg.path }, path);
+      if (installedOk) await checkOpen();
     } else if (pkg.kind === "flatpak" || pkg.kind === "flatpakref") {
       const scope = await chooseScope(pkg.name);
       if (!scope) return;
@@ -76,6 +95,11 @@
         >
           {running ? $_("common.installing") : installedOk ? $_("settings.installedTag") : $_("common.install")}
         </button>
+        {#if canOpen}
+          <button class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.78rem]" on:click={openPackage}>
+            {$_("common.open")}
+          </button>
+        {/if}
         {#if pkg.kind === "appimage"}
           <button class="px-3 py-1.5 rounded border border-border text-text hover:bg-surface-2 hover:text-text-bright text-[0.78rem]" on:click={openManager}>
             {$_("local.openManager")}

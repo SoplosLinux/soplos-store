@@ -129,6 +129,8 @@ pub fn run() {
             launcher::launch_app,
             launcher::can_open_app,
             launcher::open_app,
+            launcher::can_open_package,
+            launcher::open_package,
             launcher::open_url,
             launcher::take_startup_file,
             launcher::inspect_package,

@@ -13,6 +13,7 @@ First stable release: the program is no longer in beta.
 ### Fixed
 
 - The package had no section, so APT repositories managed with reprepro refused it ("No section given"). It is in the section `admin`, with the priority `optional`, as the other Soplos programs that change the system.
+- A .deb file opened from the file manager had no Open button once installed: its page only said Installed. The button now shows as soon as the package is installed, and also when it was installed already. What it opens is read from dpkg itself, the launchers the package put in the menu (`dpkg-query -L`), so it works for any package, also one that is in no catalog.
 
 ## [3.0.1-5-beta] - 2026-11-14
 

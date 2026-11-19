@@ -114,7 +114,51 @@ pub fn can_open_app(app_id: String, source: String, ref_id: String) -> bool {
 /// Opens an installed app, as its launcher in the menu does.
 #[tauri::command(async)]
 pub fn open_app(app_id: String, source: String, ref_id: String) -> Result<(), String> {
-    let (program, args): (String, Vec<String>) = match launch_for(&app_id, &source, &ref_id).ok_or("The app has nothing to open")? {
+    start(launch_for(&app_id, &source, &ref_id).ok_or("The app has nothing to open")?)
+}
+
+/// The desktop files a Debian package installed and the menu shows: what an
+/// installed .deb has to open, read from dpkg itself, so it works for any
+/// package, also one that is in no catalog.
+fn package_desktops(package: &str) -> Vec<PathBuf> {
+    // Only a plain package name reaches dpkg.
+    let valid = !package.is_empty()
+        && !package.starts_with('-')
+        && package.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'));
+    if !valid {
+        return Vec::new();
+    }
+    let Some(files) = system::output("dpkg-query", &["-L", package]) else { return Vec::new() };
+    files
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.ends_with(".desktop") && line.contains("/applications/"))
+        .map(PathBuf::from)
+        .filter(|path| {
+            std::fs::read_to_string(path)
+                .map(|text| !text.lines().any(|l| matches!(l.trim(), "NoDisplay=true" | "Hidden=true")))
+                .unwrap_or(false)
+        })
+        .collect()
+}
+
+/// Whether the package installed from a .deb file has something to open, so
+/// its page shows an Open button once it is installed.
+#[tauri::command(async)]
+pub fn can_open_package(package: String) -> bool {
+    !package_desktops(&package).is_empty()
+}
+
+/// Opens what the package installed from a .deb file put in the menu.
+#[tauri::command(async)]
+pub fn open_package(package: String) -> Result<(), String> {
+    let desktop = package_desktops(&package).into_iter().next().ok_or("The package has nothing to open")?;
+    start(Launch::Desktop(desktop))
+}
+
+/// Starts an application the way the desktop does.
+fn start(launch: Launch) -> Result<(), String> {
+    let (program, args): (String, Vec<String>) = match launch {
         Launch::Command(program, args) => (program.to_string(), args),
         Launch::Desktop(path) => {
             let stem = path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();

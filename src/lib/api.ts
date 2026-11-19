@@ -176,6 +176,9 @@ export const api = {
   /** Whether an installed app has something to open (a launcher, or a sandboxed app). */
   canOpenApp: (appId: string, source: SourceKind, refId: string) => invoke<boolean>("can_open_app", { appId, source, refId }),
   openApp: (appId: string, source: SourceKind, refId: string) => invoke<void>("open_app", { appId, source, refId }),
+  /** Whether the package installed from a .deb file put something in the menu to open. */
+  canOpenPackage: (pkg: string) => invoke<boolean>("can_open_package", { package: pkg }),
+  openPackage: (pkg: string) => invoke<void>("open_package", { package: pkg }),
   takeStartupFile: () => invoke<string | null>("take_startup_file"),
   takeStartupUpdates: () => invoke<boolean>("take_startup_updates"),
   inspectPackage: (path: string) => track(invoke<LocalPackage | null>("inspect_package", { path })),
